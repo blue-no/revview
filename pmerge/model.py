@@ -123,13 +123,13 @@ class DifferenceDetection:
                 continue
             x, y, w, h = cv2.boundingRect(cnt)
             if self._bg_bgr is not None:
-                x1, x2 = x + self._bg_del_margin, x + w - self._bg_del_margin
-                y1, y2 = y + self._bg_del_margin, y + h - self._bg_del_margin
-                if (
-                    x2 - x1 > 0
-                    and y2 - y1 > 0
-                    and np.all(src[y1:y2, x1:x2] == list(self._bg_bgr))
-                ):
+                x1, x2 = x, x + w
+                y1, y2 = y, y + h
+                if w > 2 * self._bg_del_margin:
+                    x1, x2 = x1 + self._bg_del_margin, x2 - self._bg_del_margin
+                if h > 2 * self._bg_del_margin:
+                    y1, y2 = y1 + self._bg_del_margin, y2 - self._bg_del_margin
+                if np.all(src[y1:y2, x1:x2] == list(self._bg_bgr)):
                     continue
             cv2.rectangle(dmy, (x, y), (x + w, y + h), (255, 255, 255), -1)
         mask_dmy = cv2.cvtColor(dmy, cv2.COLOR_BGR2GRAY)

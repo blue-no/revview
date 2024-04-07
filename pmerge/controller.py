@@ -7,7 +7,7 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from pmerge.model import DifferenceDetection, ImagePPT
+from pmerge.model import DifferenceDetection, ImagePPT, open_presentation
 from pmerge.view import Ui_MainWindow
 
 
@@ -25,7 +25,8 @@ def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
 
 
 class MainWindowController:
-    inst: MainWindowController | None = None
+    inst: MainWindowController
+    root: QtWidgets.QMainWindow
 
     def __init__(self, ui: Ui_MainWindow) -> None:
         self.diff = DifferenceView(
@@ -102,9 +103,9 @@ class MainWindowController:
         ui = Ui_MainWindow()
         ui.setupUi(window)
         cls.inst = cls(ui=ui)
+        cls.root = window
         window.show()
         sys.exit(app.exec_())
-
 
     def select_ppt(
         self,
@@ -115,8 +116,24 @@ class MainWindowController:
         fp = self._select_pptfile()
         if fp is None:
             return
+
+        with open_presentation(fp=fp) as prs:
+            pbar = QtWidgets.QProgressDialog(
+                "読み込み中...",
+                "キャンセル",
+                0,
+                len(prs.Slides),
+                parent=self.root,
+            )
+            page_tgt.load_imageppt(
+                ppt=ImagePPT().load(
+                    slides=prs.Slides,
+                    callback=lambda i: pbar.setValue(i + 1),
+                )
+            )
+        pbar.close()
+
         fp_le.setText(fp)
-        page_tgt.load_imageppt(ImagePPT(fp=fp))
         page_tgt.go_first_page()
         page_tgt.enable()
         if page_ref.is_loaded():

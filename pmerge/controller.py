@@ -125,6 +125,7 @@ class MainWindowController:
                 len(prs.Slides),
                 parent=self.root,
             )
+            pbar.setWindowTitle("PMerge")
             page_tgt.load_imageppt(
                 ppt=ImagePPT().load(
                     slides=prs.Slides,

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pmerge"
-version = "0.2d.0"
+version = "0.2.1"
 description = ""
 authors = [""]
 readme = "README.md"

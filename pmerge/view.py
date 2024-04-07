@@ -323,7 +323,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "PMerge"))
         self.fileBtn_R.setText(_translate("MainWindow", "📂"))
         self.firstBtn_L.setText(_translate("MainWindow", "❙◀"))
         self.prevBtn_L.setText(_translate("MainWindow", "◀"))

@@ -1,71 +1,75 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import cv2
 import numpy as np
 import win32com.client
 
 
+@contextmanager
+def open_presentation(fp: Path | str) -> Any:
+    fp = Path(fp)
+    if not fp.exists():
+        raise FileNotFoundError
+
+    app = win32com.client.Dispatch("Powerpoint.Application")
+    prs = app.Presentations.Open(
+        fp.absolute().as_posix(),
+        ReadOnly=True,
+        Untitled=False,
+        WithWindow=False,
+    )
+    try:
+        yield prs
+    finally:
+        prs.Close()
+        app.Quit()
+
+
 class ImagePPT:
 
-    def __init__(self, fp: Path | str) -> None:
+    def __init__(self) -> None:
         self._tmp_wd: Path = Path(__file__).parent.joinpath(".tmp")
         self.slides: list[np.ndarray] = []
         self.total: int = 0
         self.ftype: str = "jpg"
 
-        self._load(fp=fp)
-
-    def _load(self, fp: Path | str) -> None:
-        fp = Path(fp)
-        if not fp.exists():
-            raise FileNotFoundError
-
-        app = win32com.client.Dispatch("Powerpoint.Application")
-        prs = app.Presentations.Open(
-            fp.absolute().as_posix(),
-            ReadOnly=True,
-            Untitled=False,
-            WithWindow=False,
-        )
-
+    def load(
+        self,
+        slides: win32com.client.CDispatch,
+        callback: Callable[[int], None] | None,
+    ) -> ImagePPT:
         self._tmp_wd.mkdir(parents=True, exist_ok=True)
-        self._empty_wd()
-
-        self._save_slides_as_image(prs=prs)
-        prs.Close()
-        app.Quit()
-        self._load_slide_imgages()
-
-        self._empty_wd()
-        self._tmp_wd.rmdir()
+        self._load_slide_imgages(slides=slides, callback=callback)
+        return self
 
     def get_page(self, p: int) -> np.ndarray:
         return self.slides[p - 1]
 
-    def _save_slides_as_image(self, prs: Any) -> None:
-        for i, slide in enumerate(prs.Slides, start=1):
-            out_fp = Path(str(i).zfill(4)).with_suffix("." + self.ftype.lower())
-            slide.Export(
-                (self._tmp_wd / out_fp).absolute(),
-                self.ftype.upper(),
-            )
+    def _load_slide_imgages(
+        self,
+        slides: win32com.client.CDispatch,
+        callback: Callable[[int], None] | None,
+    ) -> None:
+        slides_ = []
+        for i, slide in enumerate(slides, start=1):
+            img_fn = Path(str(i).zfill(4)).with_suffix("." + self.ftype.lower())
+            img_fp = self._tmp_wd / img_fn
+            slide.Export(img_fp.absolute(), self.ftype.upper())
 
+            img = cv2.imread(img_fp.as_posix())
+            slides_.append(img)
+
+            img_fp.unlink(missing_ok=True)
+
+            if callback is not None:
+                callback(i)
+
+        self.slides = slides_
         self.total = i
-
-    def _load_slide_imgages(self) -> None:
-        slides = []
-        for fp in self._tmp_wd.iterdir():
-            img = cv2.imread(fp.as_posix())
-            slides.append(img)
-
-        self.slides = slides
-
-    def _empty_wd(self) -> None:
-        for fp in self._tmp_wd.iterdir():
-            fp.unlink(missing_ok=True)
 
 
 class DifferenceDetection:
@@ -106,7 +110,9 @@ class DifferenceDetection:
     ) -> np.ndarray:
         gray1 = cv2.cvtColor(src1, cv2.COLOR_BGR2GRAY)
         gray2 = cv2.cvtColor(src2, cv2.COLOR_BGR2GRAY)
-        diff = np.abs(gray1.astype(np.int64) - gray2.astype(np.int64)).astype(np.uint8)
+        diff = np.abs(gray1.astype(np.int64) - gray2.astype(np.int64)).astype(
+            np.uint8
+        )
         mask = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)[1]
         return mask
 
@@ -117,7 +123,9 @@ class DifferenceDetection:
     ) -> np.ndarray:
 
         dmy = np.zeros_like(src)
-        cnts_dmy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]
+        cnts_dmy = cv2.findContours(
+            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+        )[0]
         for cnt in cnts_dmy:
             if cv2.contourArea(cnt) < self._min_cnt_area:
                 continue
@@ -133,7 +141,11 @@ class DifferenceDetection:
                     continue
             cv2.rectangle(dmy, (x, y), (x + w, y + h), (255, 255, 255), -1)
         mask_dmy = cv2.cvtColor(dmy, cv2.COLOR_BGR2GRAY)
-        cnts = cv2.findContours(mask_dmy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0]
+        cnts = cv2.findContours(
+            mask_dmy,
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_NONE,
+        )[0]
         return cnts
 
     def _draw_contours(

@@ -40,7 +40,7 @@ class ImagePPT:
     def load(
         self,
         slides: win32com.client.CDispatch,
-        callback: Callable[[int], None] | None,
+        callback: Callable[[int], None] | None = None,
     ) -> ImagePPT:
         self._tmp_wd.mkdir(parents=True, exist_ok=True)
         self._load_slide_imgages(slides=slides, callback=callback)
@@ -85,6 +85,7 @@ class DifferenceDetection:
         self._bg_bgr = None if bg_color is None else list(bg_color[::-1])
         self._min_cnt_area = 10
         self._bg_del_margin = 20
+        self._n_merge_mask = 2
 
     def difference(
         self,
@@ -94,10 +95,19 @@ class DifferenceDetection:
         if not self._image_same_size(src1=src1, src2=src2):
             return (src1, src2)
         mask = self._mask_diff_area(src1=src1, src2=src2)
-        cnts1 = self._extract_contours(src=src1, mask=mask)
-        cnts2 = self._extract_contours(src=src2, mask=mask)
-        dst1 = self._draw_contours(src=src1, cnts=cnts1)
-        dst2 = self._draw_contours(src=src2, cnts=cnts2)
+        cnts1 = self._extract_merged_mask_contour(
+            src=src1,
+            mask=mask,
+            n_repeat=self._n_merge_mask,
+        )
+        cnts2 = self._extract_merged_mask_contour(
+            src=src2,
+            mask=mask,
+            n_repeat=self._n_merge_mask,
+        )
+        dst1 = self._draw_output_contour(src=src1, cnts=cnts1)
+        dst2 = self._draw_output_contour(src=src2, cnts=cnts2)
+
         return (dst1, dst2)
 
     def _image_same_size(self, src1: np.ndarray, src2: np.ndarray) -> bool:
@@ -116,51 +126,77 @@ class DifferenceDetection:
         mask = cv2.threshold(diff, 1, 255, cv2.THRESH_BINARY)[1]
         return mask
 
-    def _extract_contours(
+    def _extract_merged_mask_contour(
         self,
         src: np.ndarray,
         mask: np.ndarray,
-    ) -> np.ndarray:
-
-        dmy = np.zeros_like(src)
-        cnts_dmy = cv2.findContours(
-            mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-        )[0]
-        for cnt in cnts_dmy:
-            if cv2.contourArea(cnt) < self._min_cnt_area:
-                continue
-            x, y, w, h = cv2.boundingRect(cnt)
-            if self._bg_bgr is not None:
-                x1, x2 = x, x + w
-                y1, y2 = y, y + h
-                if w > 2 * self._bg_del_margin:
-                    x1, x2 = x1 + self._bg_del_margin, x2 - self._bg_del_margin
-                if h > 2 * self._bg_del_margin:
-                    y1, y2 = y1 + self._bg_del_margin, y2 - self._bg_del_margin
-                if np.all(src[y1:y2, x1:x2] == list(self._bg_bgr)):
-                    continue
-            cv2.rectangle(dmy, (x, y), (x + w, y + h), (255, 255, 255), -1)
-        mask_dmy = cv2.cvtColor(dmy, cv2.COLOR_BGR2GRAY)
+        n_repeat: int = 1,
+    ) -> Any:
         cnts = cv2.findContours(
-            mask_dmy,
+            mask,
             cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_NONE,
         )[0]
+
+        for _ in range(n_repeat):
+            dmask = self._draw_contours(
+                src=src,
+                dst=np.zeros_like(src),
+                cnts=cnts,
+                color=(255, 255, 255),
+                width=-1,
+                min_area=self._min_cnt_area,
+                bg_bgr=self._bg_bgr,
+                bg_del_margin=self._bg_del_margin,
+            )
+            dgray = cv2.cvtColor(dmask, cv2.COLOR_BGR2GRAY)
+            cnts = cv2.findContours(
+                dgray,
+                cv2.RETR_EXTERNAL,
+                cv2.CHAIN_APPROX_NONE,
+            )[0]
         return cnts
+
+    def _draw_output_contour(
+        self,
+        src: np.ndarray,
+        cnts: list[Any],
+    ) -> np.ndarray:
+        dst = self._draw_contours(
+            src=src,
+            cnts=cnts,
+            dst=src.copy(),
+            color=self._line_bgr,
+            width=self._line_width,
+        )
+        return dst
 
     def _draw_contours(
         self,
         src: np.ndarray,
-        cnts: list[np.ndarray],
+        dst: np.ndarray,
+        cnts: list[Any],
+        color: tuple[int, int, int],
+        width: int = 1,
+        min_area: int = 0,
+        bg_bgr: tuple[int, int, int] | None = None,
+        bg_del_margin: int = 0,
     ) -> np.ndarray:
-        dst = src.copy()
         for cnt in cnts:
+            if cv2.contourArea(cnt) < min_area:
+                continue
+
             x, y, w, h = cv2.boundingRect(cnt)
-            cv2.rectangle(
-                dst,
-                (x, y),
-                (x + w, y + h),
-                self._line_bgr,
-                self._line_width,
-            )
+
+            if bg_bgr is not None:
+                x1, x2 = x, x + w
+                y1, y2 = y, y + h
+                if w > 2 * bg_del_margin:
+                    x1, x2 = x1 + bg_del_margin, x2 - bg_del_margin
+                if h > 2 * bg_del_margin:
+                    y1, y2 = y1 + bg_del_margin, y2 - bg_del_margin
+                if np.all(src[y1:y2, x1:x2] == list(bg_bgr)):
+                    continue
+
+            cv2.rectangle(dst, (x, y), (x + w, y + h), color, width)
         return dst

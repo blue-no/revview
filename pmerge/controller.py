@@ -7,7 +7,7 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from pmerge.model import DifferenceDetection, ImagePPT, open_presentation
+from pmerge.model import DifferenceDetection, ImagePPT
 from pmerge.view import Ui_MainWindow
 
 
@@ -117,21 +117,17 @@ class MainWindowController:
         if fp is None:
             return
 
-        with open_presentation(fp=fp) as prs:
-            pbar = QtWidgets.QProgressDialog(
-                "読み込み中...",
-                "キャンセル",
-                0,
-                len(prs.Slides),
-                parent=self.root,
-            )
-            pbar.setWindowTitle("PMerge")
-            page_tgt.load_imageppt(
-                ppt=ImagePPT().load(
-                    slides=prs.Slides,
-                    callback=lambda i: pbar.setValue(i + 1),
-                )
-            )
+        ppt = ImagePPT().open(fp=fp)
+        pbar = QtWidgets.QProgressDialog(
+            "読み込み中...",
+            "キャンセル",
+            0,
+            ppt.total,
+            parent=self.root,
+        )
+        pbar.setWindowTitle("PMerge")
+        ppt.load_pages(callback=lambda i: pbar.setValue(i + 1))
+        page_tgt.load_imageppt(ppt=ppt)
         pbar.close()
 
         fp_le.setText(fp)

@@ -25,7 +25,6 @@ def open_presentation(fp: Path | str) -> Any:
     try:
         yield prs
     finally:
-        prs.Close()
         app.Quit()
 
 
@@ -36,26 +35,18 @@ class ImagePPT:
         self.slides: list[np.ndarray] = []
         self.total: int = 0
         self.ftype: str = "jpg"
+        self._prs: win32com.client.CDispatch | None = None
 
-    def load(
-        self,
-        slides: win32com.client.CDispatch,
-        callback: Callable[[int], None] | None = None,
-    ) -> ImagePPT:
-        self._tmp_wd.mkdir(parents=True, exist_ok=True)
-        self._load_slide_imgages(slides=slides, callback=callback)
+    def open(self, fp: Path | str) -> ImagePPT:
+        with open_presentation(fp=fp) as prs:
+            self._prs = prs
+            self.total = len(prs.Slides)
         return self
 
-    def get_page(self, p: int) -> np.ndarray:
-        return self.slides[p - 1]
-
-    def _load_slide_imgages(
-        self,
-        slides: win32com.client.CDispatch,
-        callback: Callable[[int], None] | None,
-    ) -> None:
+    def load_pages(self, callback: Callable[[int], None] | None = None) -> None:
+        self._tmp_wd.mkdir(parents=True, exist_ok=True)
         slides_ = []
-        for i, slide in enumerate(slides, start=1):
+        for i, slide in enumerate(self._prs.Slides, start=1):
             img_fn = Path(str(i).zfill(4)).with_suffix("." + self.ftype.lower())
             img_fp = self._tmp_wd / img_fn
             slide.Export(img_fp.absolute(), self.ftype.upper())
@@ -69,7 +60,10 @@ class ImagePPT:
                 callback(i)
 
         self.slides = slides_
-        self.total = i
+        self._prs.Close()
+
+    def get_page(self, p: int) -> np.ndarray:
+        return self.slides[p - 1]
 
 
 class DifferenceDetection:

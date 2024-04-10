@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from revview.model import DifferenceDetection, ImagePPT
+from revview.model import BaseImage, DifferenceDetection, ImageFactory
 from revview.view import Ui_MainWindow
 
 
@@ -29,6 +30,8 @@ class MainWindowController:
     root: QtWidgets.QMainWindow
 
     def __init__(self, ui: Ui_MainWindow) -> None:
+        self.image_factory = ImageFactory()
+
         self.diff = DifferenceView(
             slideLbl_l=ui.slideLbl_L,
             slideLbl_r=ui.slideLbl_R,
@@ -67,14 +70,14 @@ class MainWindowController:
         )
 
         self.file_btn_l.clicked.connect(
-            lambda: self.select_ppt(
+            lambda: self.set_image_pages(
                 fp_le=self.fp_le_l,
                 page_tgt=self.page_l,
                 page_ref=self.page_r,
             )
         )
         self.file_btn_r.clicked.connect(
-            lambda: self.select_ppt(
+            lambda: self.set_image_pages(
                 fp_le=self.fp_le_r,
                 page_tgt=self.page_r,
                 page_ref=self.page_l,
@@ -107,27 +110,30 @@ class MainWindowController:
         window.show()
         sys.exit(app.exec_())
 
-    def select_ppt(
+    def set_image_pages(
         self,
         fp_le: QtWidgets.QLineEdit,
         page_tgt: PageTurning,
         page_ref: PageTurning,
     ) -> None:
-        fp = self._select_pptfile()
+        fp = self._select_file()
         if fp is None:
             return
 
-        ppt = ImagePPT().open(fp=fp)
+        suff = Path(fp).suffix
+        page_cls = self.image_factory.create(type_=suff)
+
+        img = page_cls.open(fp=fp)
         pbar = QtWidgets.QProgressDialog(
             "読み込み中...",
             "キャンセル",
             0,
-            ppt.total,
+            img.total,
             parent=self.root,
         )
         pbar.setWindowTitle("RevView")
-        ppt.load_pages(callback=lambda i: pbar.setValue(i + 1))
-        page_tgt.load_imageppt(ppt=ppt)
+        img.load_pages(callback=lambda i: pbar.setValue(i + 1))
+        page_tgt.load_image(img=img)
         pbar.close()
 
         fp_le.setText(fp)
@@ -146,10 +152,10 @@ class MainWindowController:
             return
         page.go_page_no(p=int(page_le.text()))
 
-    def _select_pptfile(self) -> str | None:
+    def _select_file(self) -> str | None:
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
-            filter="PowerPoint プレゼンテーション (*.pptx)",
+            filter="PowerPoint プレゼンテーション, Tiffイメージ (*.pptx *.tiff)",
         )
         if dialog.exec_():
             return dialog.selectedFiles()[0]
@@ -297,7 +303,7 @@ class PageTurning:
         last_btn: QtWidgets.QPushButton,
         update_func: Callable[[np.ndarray], None],
     ) -> None:
-        self.ppt = None
+        self.img = None
         self.total_lbl = total_lbl
         self.page_le = page_le
         self.first_btn = first_btn
@@ -313,7 +319,7 @@ class PageTurning:
         self.next_btn.clicked.connect(self.go_next_page)
 
     def is_loaded(self) -> bool:
-        return self.ppt is not None
+        return self.img is not None
 
     def disable(self) -> None:
         self.page_le.setEnabled(False)
@@ -329,38 +335,38 @@ class PageTurning:
         self.next_btn.setEnabled(True)
         self.last_btn.setEnabled(True)
 
-    def load_imageppt(self, ppt: ImagePPT) -> None:
-        self.ppt = ppt
-        self.total_lbl.setText(str(self.ppt.total))
+    def load_image(self, img: BaseImage) -> None:
+        self.img = img
+        self.total_lbl.setText(str(self.img.total))
 
     def go_first_page(self) -> None:
         self.curpage = 1
-        img = self.ppt.get_page(p=self.curpage)
+        img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_last_page(self) -> None:
-        self.curpage = self.ppt.total
-        img = self.ppt.get_page(p=self.curpage)
+        self.curpage = self.img.total
+        img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_prev_page(self) -> None:
         self.curpage = self._within_page_range(self.curpage - 1)
-        img = self.ppt.get_page(p=self.curpage)
+        img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_next_page(self) -> None:
         self.curpage = self._within_page_range(self.curpage + 1)
-        img = self.ppt.get_page(p=self.curpage)
+        img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_page_no(self, p: int) -> None:
         self.curpage = self._within_page_range(p)
-        img = self.ppt.get_page(p=self.curpage)
+        img = self.img.get_page(p=self.curpage)
         self.update_func(img)
 
     def _within_page_range(self, p: int) -> int:
-        return min(max(p, 1), self.ppt.total)
+        return min(max(p, 1), self.img.total)

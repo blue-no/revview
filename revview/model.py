@@ -7,6 +7,7 @@ from typing import Any, Callable
 import cv2
 import numpy as np
 import win32com.client
+from PIL import Image
 
 
 @contextmanager
@@ -28,16 +29,43 @@ def open_presentation(fp: Path | str) -> Any:
         app.Quit()
 
 
-class ImagePPT:
+class ImageFactory:
 
     def __init__(self) -> None:
-        self._tmp_wd: Path = Path(__file__).parent.joinpath(".tmp")
-        self.slides: list[np.ndarray] = []
+        self.clses = {
+            ".pptx": PPTImage,
+            ".tiff": TiffImage,
+        }
+
+    def create(self, type_: str) -> BaseImage:
+        return self.clses[type_]()
+
+
+class BaseImage:
+    def __init__(self) -> None:
+        self.pages: list[np.ndarray]
+        self.total: int
+
+    def open(self, fp: Path | str) -> BaseImage:
+        raise NotImplementedError
+
+    def load_pages(self, callback: Callable[[int], None] | None = None) -> None:
+        raise NotImplementedError
+
+    def get_page(self, p: int) -> np.ndarray:
+        raise NotImplementedError
+
+
+class PPTImage(BaseImage):
+
+    def __init__(self) -> None:
+        self.pages: list[np.ndarray] = []
         self.total: int = 0
-        self.ftype: str = "jpg"
+        self._tmp_wd: Path = Path(__file__).parent.joinpath(".tmp")
+        self._suff: str = "jpg"
         self._prs: win32com.client.CDispatch | None = None
 
-    def open(self, fp: Path | str) -> ImagePPT:
+    def open(self, fp: Path | str) -> PPTImage:
         with open_presentation(fp=fp) as prs:
             self._prs = prs
             self.total = len(prs.Slides)
@@ -45,25 +73,54 @@ class ImagePPT:
 
     def load_pages(self, callback: Callable[[int], None] | None = None) -> None:
         self._tmp_wd.mkdir(parents=True, exist_ok=True)
-        slides_ = []
+        pages_ = []
         for i, slide in enumerate(self._prs.Slides, start=1):
-            img_fn = Path(str(i).zfill(4)).with_suffix("." + self.ftype.lower())
+            img_fn = Path(str(i).zfill(4)).with_suffix("." + self._suff.lower())
             img_fp = self._tmp_wd / img_fn
-            slide.Export(img_fp.absolute(), self.ftype.upper())
+            slide.Export(img_fp.absolute(), self._suff.upper())
 
             img = cv2.imread(img_fp.as_posix())
-            slides_.append(img)
+            pages_.append(img)
 
             img_fp.unlink(missing_ok=True)
 
             if callback is not None:
                 callback(i)
 
-        self.slides = slides_
+        self.pages = pages_
         self._prs.Close()
 
     def get_page(self, p: int) -> np.ndarray:
-        return self.slides[p - 1]
+        return self.pages[p - 1]
+
+
+class TiffImage(BaseImage):
+
+    def __init__(self) -> None:
+        self.pages: list[np.ndarray] = []
+        self.total: int = 0
+        self._img: Image.Image | None = None
+
+    def open(self, fp: Path | str) -> TiffImage:
+        self._img = Image.open(fp)
+        self.total = self._img.n_frames
+        return self
+
+    def load_pages(self, callback: Callable[[int], None] | None = None) -> None:
+        pages_ = []
+        for i in range(self._img.n_frames):
+            self._img.seek(i)
+            pages_.append(
+                cv2.cvtColor(np.array(self._img.copy()), cv2.COLOR_RGB2BGR)
+            )
+
+            if callback is not None:
+                callback(i)
+
+        self.pages = pages_
+
+    def get_page(self, p: int) -> np.ndarray:
+        return self.pages[p - 1]
 
 
 class DifferenceDetection:
@@ -140,6 +197,7 @@ class DifferenceDetection:
                 color=(255, 255, 255),
                 width=-1,
                 min_area=self._min_cnt_area,
+                extend_margin=3,
                 bg_bgr=self._bg_bgr,
                 bg_del_margin=self._bg_del_margin,
             )
@@ -173,6 +231,7 @@ class DifferenceDetection:
         color: tuple[int, int, int],
         width: int = 1,
         min_area: int = 0,
+        extend_margin: int = 0,
         bg_bgr: tuple[int, int, int] | None = None,
         bg_del_margin: int = 0,
     ) -> np.ndarray:
@@ -192,5 +251,11 @@ class DifferenceDetection:
                 if np.all(src[y1:y2, x1:x2] == list(bg_bgr)):
                     continue
 
-            cv2.rectangle(dst, (x, y), (x + w, y + h), color, width)
+            cv2.rectangle(
+                dst,
+                (x - extend_margin, y - extend_margin),
+                (x + w + extend_margin, y + h + extend_margin),
+                color,
+                width,
+            )
         return dst

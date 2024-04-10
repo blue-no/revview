@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>PMerge</string>
+   <string>RevView</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">

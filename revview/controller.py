@@ -7,8 +7,8 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from pmerge.model import DifferenceDetection, ImagePPT
-from pmerge.view import Ui_MainWindow
+from revview.model import DifferenceDetection, ImagePPT
+from revview.view import Ui_MainWindow
 
 
 def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
@@ -125,7 +125,7 @@ class MainWindowController:
             ppt.total,
             parent=self.root,
         )
-        pbar.setWindowTitle("PMerge")
+        pbar.setWindowTitle("RevView")
         ppt.load_pages(callback=lambda i: pbar.setValue(i + 1))
         page_tgt.load_imageppt(ppt=ppt)
         pbar.close()

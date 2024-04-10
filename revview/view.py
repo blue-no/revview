@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pmerge/view.ui'
+# Form implementation generated from reading ui file 'revview/view.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.1
 #
@@ -329,7 +329,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "PMerge"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "RevView"))
         self.fileBtn_R.setText(_translate("MainWindow", "📂"))
         self.firstBtn_L.setText(_translate("MainWindow", "❙◀"))
         self.prevBtn_L.setText(_translate("MainWindow", "◀"))

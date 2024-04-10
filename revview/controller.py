@@ -29,7 +29,12 @@ class MainWindowController:
     inst: MainWindowController
     root: QtWidgets.QMainWindow
 
-    def __init__(self, ui: Ui_MainWindow) -> None:
+    def __init__(
+        self,
+        window: QtWidgets.QMainWindow,
+        ui: Ui_MainWindow,
+    ) -> None:
+        self.window = window
         self.image_factory = ImageFactory()
 
         self.diff = DifferenceView(
@@ -99,16 +104,31 @@ class MainWindowController:
         self.page_r.disable()
         self.page_sync.disable()
 
+        self._register_key_event(window)
+
     @classmethod
     def run(cls: MainWindowController) -> None:
         app = QtWidgets.QApplication(sys.argv)
         window = QtWidgets.QMainWindow()
         ui = Ui_MainWindow()
         ui.setupUi(window)
-        cls.inst = cls(ui=ui)
-        cls.root = window
+        cls(window=window, ui=ui)
         window.show()
         sys.exit(app.exec_())
+
+    def _register_key_event(self, widget: QtWidgets.QWidget):
+        def key_event(event: QtGui.QKeyEvent) -> None:
+            key = event.key()
+            if key == Qt.Key_PageUp:
+                self.page_sync.go_prev_page()
+            elif key == Qt.Key_PageDown:
+                self.page_sync.go_next_page()
+            elif key == Qt.Key_Home:
+                self.page_sync.go_first_page()
+            elif key == Qt.Key_End:
+                self.page_sync.go_last_page()
+
+        widget.keyPressEvent = key_event
 
     def set_image_pages(
         self,
@@ -129,7 +149,7 @@ class MainWindowController:
             "キャンセル",
             0,
             img.total,
-            parent=self.root,
+            parent=self.window,
         )
         pbar.setWindowTitle("RevView")
         img.load_pages(callback=lambda i: pbar.setValue(i + 1))
@@ -340,30 +360,40 @@ class PageTurning:
         self.total_lbl.setText(str(self.img.total))
 
     def go_first_page(self) -> None:
+        if self.img is None:
+            return
         self.curpage = 1
         img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_last_page(self) -> None:
+        if self.img is None:
+            return
         self.curpage = self.img.total
         img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_prev_page(self) -> None:
+        if self.img is None:
+            return
         self.curpage = self._within_page_range(self.curpage - 1)
         img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_next_page(self) -> None:
+        if self.img is None:
+            return
         self.curpage = self._within_page_range(self.curpage + 1)
         img = self.img.get_page(p=self.curpage)
         self.page_le.setText(str(self.curpage))
         self.update_func(img)
 
     def go_page_no(self, p: int) -> None:
+        if self.img is None:
+            return
         self.curpage = self._within_page_range(p)
         img = self.img.get_page(p=self.curpage)
         self.update_func(img)

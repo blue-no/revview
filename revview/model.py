@@ -137,6 +137,7 @@ class DifferenceDetection:
         self._min_cnt_area = 10
         self._bg_del_margin = 20
         self._n_merge_mask = 2
+        self._extend_mergin = 1
 
     def difference(
         self,
@@ -197,9 +198,9 @@ class DifferenceDetection:
                 color=(255, 255, 255),
                 width=-1,
                 min_area=self._min_cnt_area,
-                extend_margin=3,
                 bg_bgr=self._bg_bgr,
                 bg_del_margin=self._bg_del_margin,
+                extend_margin=self._extend_mergin,
             )
             dgray = cv2.cvtColor(dmask, cv2.COLOR_BGR2GRAY)
             cnts = cv2.findContours(
@@ -231,9 +232,9 @@ class DifferenceDetection:
         color: tuple[int, int, int],
         width: int = 1,
         min_area: int = 0,
-        extend_margin: int = 0,
         bg_bgr: tuple[int, int, int] | None = None,
         bg_del_margin: int = 0,
+        extend_margin: int = 0,
     ) -> np.ndarray:
         for cnt in cnts:
             if cv2.contourArea(cnt) < min_area:

@@ -32,19 +32,24 @@ def open_presentation(fp: Path | str) -> Any:
 class ImageFactory:
 
     def __init__(self) -> None:
-        self.clses = {
+        self.types = {
             ".pptx": PPTImage,
+            ".ppt": PPTImage,
             ".tiff": TiffImage,
+            ".tif": TiffImage,
         }
 
+    def supported_suffs(self) -> list[str]:
+        return self.types.keys()
+
     def create(self, type_: str) -> BaseImage:
-        return self.clses[type_]()
+        return self.types[type_.lower()]()
 
 
 class BaseImage:
+
     def __init__(self) -> None:
-        self.pages: list[np.ndarray]
-        self.total: int
+        super().__init__()
 
     def open(self, fp: Path | str) -> BaseImage:
         raise NotImplementedError
@@ -59,8 +64,7 @@ class BaseImage:
 class PPTImage(BaseImage):
 
     def __init__(self) -> None:
-        self.pages: list[np.ndarray] = []
-        self.total: int = 0
+        super().__init__()
         self._tmp_wd: Path = Path(__file__).parent.joinpath(".tmp")
         self._suff: str = "jpg"
         self._prs: win32com.client.CDispatch | None = None
@@ -97,8 +101,7 @@ class PPTImage(BaseImage):
 class TiffImage(BaseImage):
 
     def __init__(self) -> None:
-        self.pages: list[np.ndarray] = []
-        self.total: int = 0
+        super().__init__()
         self._img: Image.Image | None = None
 
     def open(self, fp: Path | str) -> TiffImage:

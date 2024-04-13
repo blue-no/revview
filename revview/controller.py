@@ -173,9 +173,10 @@ class MainWindowController:
         page.go_page_no(p=int(page_le.text()))
 
     def _select_file(self) -> str | None:
+        ftypes = " ".join(["*"+s for s in self.image_factory.supported_suffs()])
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
-            filter="PowerPoint プレゼンテーション, Tiffイメージ (*.pptx *.tiff)",
+            filter=f"ファイル ({ftypes})",
         )
         if dialog.exec_():
             return dialog.selectedFiles()[0]

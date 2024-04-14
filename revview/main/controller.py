@@ -7,6 +7,8 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
+from revview._style import (apply_button_style, apply_icon_button_style,
+                            apply_lineedit_style)
 from revview.main.model import BaseImage, DifferenceDetection, ImageFactory
 from revview.main.view import Ui_MainWindow
 from revview.settings.controller import SettingsDialogController
@@ -34,8 +36,7 @@ class MainWindowController:
         parent_window: QtWidgets.QMainWindow | None = None,
     ) -> None:
         self.window = QtWidgets.QMainWindow(parent=parent_window)
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self.window)
+        self.ui = self._setup_ui(window=self.window)
 
         self.settings = settings
         self.image_factory = ImageFactory()
@@ -116,6 +117,31 @@ class MainWindowController:
 
     def show_window(self) -> None:
         self.window.show()
+
+    def _setup_ui(self, window: QtWidgets.QMainWindow) -> Ui_MainWindow:
+        ui = Ui_MainWindow()
+        ui.setupUi(window)
+        apply_icon_button_style(ui.fileBtn_L)
+        apply_icon_button_style(ui.fileBtn_R)
+        apply_icon_button_style(ui.settingsBtn)
+        apply_button_style(ui.firstBtn_L)
+        apply_button_style(ui.firstBtn_R)
+        apply_button_style(ui.firstBtn_sync)
+        apply_button_style(ui.prevBtn_L)
+        apply_button_style(ui.prevBtn_R)
+        apply_button_style(ui.prevBtn_sync)
+        apply_button_style(ui.nextBtn_L)
+        apply_button_style(ui.nextBtn_R)
+        apply_button_style(ui.nextBtn_sync)
+        apply_button_style(ui.lastBtn_L)
+        apply_button_style(ui.lastBtn_R)
+        apply_button_style(ui.lastBtn_sync)
+        apply_lineedit_style(ui.fpLE_L)
+        apply_lineedit_style(ui.fpLE_R)
+        apply_lineedit_style(ui.pageLE_L)
+        apply_lineedit_style(ui.pageLE_R)
+
+        return ui
 
     def _register_key_event(self, widget: QtWidgets.QWidget):
         def key_event(event: QtGui.QKeyEvent) -> None:

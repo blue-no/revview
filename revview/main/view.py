@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'revview/view.ui'
+# Form implementation generated from reading ui file 'revview/main.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.1
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(880, 600)
+        MainWindow.resize(1200, 600)
         font = QtGui.QFont()
         font.setFamily("Meiryo UI")
         MainWindow.setFont(font)
@@ -257,13 +257,14 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addItem(spacerItem3)
         self.gridLayout_3.addLayout(self.horizontalLayout_4, 2, 1, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_3)
-        self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_5.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.horizontalLayout_5.setContentsMargins(-1, 18, -1, -1)
-        self.horizontalLayout_5.setSpacing(12)
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setContentsMargins(-1, 12, -1, -1)
+        self.horizontalLayout_7.setSpacing(12)
+        self.horizontalLayout_7.setObjectName("horizontalLayout_7")
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem4)
+        self.horizontalLayout_8.addItem(spacerItem4)
         self.firstBtn_sync = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -275,7 +276,7 @@ class Ui_MainWindow(object):
         font.setPointSize(9)
         self.firstBtn_sync.setFont(font)
         self.firstBtn_sync.setObjectName("firstBtn_sync")
-        self.horizontalLayout_5.addWidget(self.firstBtn_sync)
+        self.horizontalLayout_8.addWidget(self.firstBtn_sync)
         self.prevBtn_sync = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -288,7 +289,10 @@ class Ui_MainWindow(object):
         self.prevBtn_sync.setFont(font)
         self.prevBtn_sync.setAutoRepeat(True)
         self.prevBtn_sync.setObjectName("prevBtn_sync")
-        self.horizontalLayout_5.addWidget(self.prevBtn_sync)
+        self.horizontalLayout_8.addWidget(self.prevBtn_sync)
+        self.horizontalLayout_7.addLayout(self.horizontalLayout_8)
+        self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_9.setObjectName("horizontalLayout_9")
         self.nextBtn_sync = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -302,7 +306,7 @@ class Ui_MainWindow(object):
         self.nextBtn_sync.setAutoFillBackground(False)
         self.nextBtn_sync.setAutoRepeat(True)
         self.nextBtn_sync.setObjectName("nextBtn_sync")
-        self.horizontalLayout_5.addWidget(self.nextBtn_sync)
+        self.horizontalLayout_9.addWidget(self.nextBtn_sync)
         self.lastBtn_sync = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -314,10 +318,19 @@ class Ui_MainWindow(object):
         font.setPointSize(9)
         self.lastBtn_sync.setFont(font)
         self.lastBtn_sync.setObjectName("lastBtn_sync")
-        self.horizontalLayout_5.addWidget(self.lastBtn_sync)
+        self.horizontalLayout_9.addWidget(self.lastBtn_sync)
         spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem5)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_5)
+        self.horizontalLayout_9.addItem(spacerItem5)
+        self.settingsBtn = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.settingsBtn.sizePolicy().hasHeightForWidth())
+        self.settingsBtn.setSizePolicy(sizePolicy)
+        self.settingsBtn.setObjectName("settingsBtn")
+        self.horizontalLayout_9.addWidget(self.settingsBtn)
+        self.horizontalLayout_7.addLayout(self.horizontalLayout_9)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_7)
         self.verticalLayout.addLayout(self.verticalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -346,6 +359,7 @@ class Ui_MainWindow(object):
         self.prevBtn_sync.setText(_translate("MainWindow", "◀"))
         self.nextBtn_sync.setText(_translate("MainWindow", "▶"))
         self.lastBtn_sync.setText(_translate("MainWindow", "▶❙"))
+        self.settingsBtn.setText(_translate("MainWindow", "⚙"))
 
 
 if __name__ == "__main__":

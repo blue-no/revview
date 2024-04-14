@@ -56,6 +56,8 @@ class SettingsDialogController:
 
     def _set_line_color(self) -> None:
         rgb = self._select_color_with_dialog()
+        if rgb is None:
+            return
         self._set_button_style(
             button=self.ui.lineColorBtn, background_color=rgb
         )
@@ -68,6 +70,8 @@ class SettingsDialogController:
 
     def _set_bg_color(self) -> None:
         rgb = self._select_color_with_dialog()
+        if rgb is None:
+            return
         self._set_button_style(button=self.ui.bgColorBtn, background_color=rgb)
         self.settings.bg_color = rgb
         self._update()
@@ -84,7 +88,7 @@ class SettingsDialogController:
     def _select_color_with_dialog(self) -> None:
         color = QtWidgets.QColorDialog(parent=self.window).getColor()
         if not color.isValid():
-            return
+            return None
         rgb = color.getRgb()[:3]
         return rgb
 

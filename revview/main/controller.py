@@ -8,8 +8,10 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from revview.model import BaseImage, DifferenceDetection, ImageFactory
-from revview.view import Ui_MainWindow
+from revview.main.model import BaseImage, DifferenceDetection, ImageFactory
+from revview.main.view import Ui_MainWindow
+from revview.settings.controller import SettingsDialogController
+from revview.settings.model import Settings
 
 
 def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
@@ -21,7 +23,7 @@ def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
             height,
             3 * width,
             QtGui.QImage.Format_RGB888,
-        ).rgbSwapped()
+        )
     )
 
 
@@ -36,10 +38,12 @@ class MainWindowController:
     ) -> None:
         self.window = window
         self.image_factory = ImageFactory()
+        settings = Settings.initialize()
 
-        self.diff = DifferenceView(
+        self.diffview = DifferenceView(
             slideLbl_l=ui.slideLbl_L,
             slideLbl_r=ui.slideLbl_R,
+            detection=DifferenceDetection(settings=settings),
         )
 
         self.file_btn_l = ui.fileBtn_L
@@ -54,7 +58,7 @@ class MainWindowController:
             prev_btn=ui.prevBtn_L,
             next_btn=ui.nextBtn_L,
             last_btn=ui.lastBtn_L,
-            update_func=self.diff.update_left,
+            update_func=self.diffview.update_left,
         )
         self.page_r = PageTurning(
             total_lbl=ui.totpageLbl_R,
@@ -63,7 +67,7 @@ class MainWindowController:
             prev_btn=ui.prevBtn_R,
             next_btn=ui.nextBtn_R,
             last_btn=ui.lastBtn_R,
-            update_func=self.diff.update_right,
+            update_func=self.diffview.update_right,
         )
         self.page_sync = SyncPageTurning(
             page_l=self.page_l,
@@ -98,6 +102,13 @@ class MainWindowController:
         ui.pageLE_R.enterEvent = lambda _: self.show_slide_no(
             page=self.page_r,
             page_le=ui.pageLE_R,
+        )
+        ui.settingsBtn.clicked.connect(
+            lambda: SettingsDialogController.run(
+                parent=self.window,
+                settings=settings,
+                callback=self.diffview.update_view,
+            )
         )
 
         self.page_l.disable()
@@ -173,7 +184,9 @@ class MainWindowController:
         page.go_page_no(p=int(page_le.text()))
 
     def _select_file(self) -> str | None:
-        ftypes = " ".join(["*"+s for s in self.image_factory.supported_suffs()])
+        ftypes = " ".join(
+            ["*" + s for s in self.image_factory.supported_suffs()]
+        )
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
             filter=f"ファイル ({ftypes})",
@@ -189,9 +202,11 @@ class DifferenceView:
         self,
         slideLbl_l: QtWidgets.QLabel,
         slideLbl_r: QtWidgets.QLabel,
+        detection: DifferenceDetection,
     ) -> None:
         self.slide_lbl_l = slideLbl_l
         self.slide_lbl_r = slideLbl_r
+        self.detection = detection
 
         self.slide_lbl_l.resizeEvent = lambda _: self.set_resized_pixmap_left()
         self.slide_lbl_r.resizeEvent = lambda _: self.set_resized_pixmap_right()
@@ -201,21 +216,17 @@ class DifferenceView:
         self.pixmap_l: QtGui.QPixmap | None = None
         self.pixmap_r: QtGui.QPixmap | None = None
 
-        self.det = DifferenceDetection(
-            line_color=(255, 128, 0),
-            line_width=3,
-            bg_color=(255, 255, 255),
-        )
-
     def update_left(self, img: np.ndarray) -> None:
         self.img_l = img
-        self._update_view()
+        self.update_view()
 
     def update_right(self, img: np.ndarray) -> None:
         self.img_r = img
-        self._update_view()
+        self.update_view()
 
-    def _update_view(self) -> None:
+    def update_view(self) -> None:
+        if self.img_r is None and self.img_l is None:
+            return
         if self.img_r is None:
             self.pixmap_l = ndarray_to_pixmap(self.img_l)
             self.set_resized_pixmap_left()
@@ -225,7 +236,9 @@ class DifferenceView:
             self.set_resized_pixmap_right()
             return
 
-        dimg_l, dimg_r = self.det.difference(src1=self.img_l, src2=self.img_r)
+        dimg_l, dimg_r = self.detection.difference(
+            src1=self.img_l, src2=self.img_r
+        )
         self.pixmap_l = ndarray_to_pixmap(dimg_l)
         self.pixmap_r = ndarray_to_pixmap(dimg_r)
         self.set_resized_pixmap_left()

@@ -9,6 +9,8 @@ import numpy as np
 import win32com.client
 from PIL import Image
 
+from revview.settings.model import Settings
+
 
 @contextmanager
 def open_presentation(fp: Path | str) -> Any:
@@ -49,7 +51,8 @@ class ImageFactory:
 class BaseImage:
 
     def __init__(self) -> None:
-        super().__init__()
+        self.pages: list[np.ndarray]
+        self.total: int
 
     def open(self, fp: Path | str) -> BaseImage:
         raise NotImplementedError
@@ -84,7 +87,7 @@ class PPTImage(BaseImage):
             slide.Export(img_fp.absolute(), self._suff.upper())
 
             img = cv2.imread(img_fp.as_posix())
-            pages_.append(img)
+            pages_.append(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
             img_fp.unlink(missing_ok=True)
 
@@ -113,9 +116,7 @@ class TiffImage(BaseImage):
         pages_ = []
         for i in range(self._img.n_frames):
             self._img.seek(i)
-            pages_.append(
-                cv2.cvtColor(np.array(self._img.copy()), cv2.COLOR_RGB2BGR)
-            )
+            pages_.append(np.array(self._img.copy()))
 
             if callback is not None:
                 callback(i)
@@ -128,15 +129,8 @@ class TiffImage(BaseImage):
 
 class DifferenceDetection:
 
-    def __init__(
-        self,
-        line_color: tuple[int] = (0, 0, 0),
-        line_width: int = 1,
-        bg_color: tuple[int] = None,
-    ) -> None:
-        self._line_bgr = line_color[::-1]
-        self._line_width = line_width
-        self._bg_bgr = None if bg_color is None else list(bg_color[::-1])
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
         self._min_cnt_area = 10
         self._bg_del_margin = 20
         self._n_merge_mask = 2
@@ -201,7 +195,11 @@ class DifferenceDetection:
                 color=(255, 255, 255),
                 width=-1,
                 min_area=self._min_cnt_area,
-                bg_bgr=self._bg_bgr,
+                bg_bgr=(
+                    self.settings.bg_color
+                    if self.settings.ignore_bg_rect
+                    else None
+                ),
                 bg_del_margin=self._bg_del_margin,
                 extend_margin=self._extend_mergin,
             )
@@ -222,8 +220,8 @@ class DifferenceDetection:
             src=src,
             cnts=cnts,
             dst=src.copy(),
-            color=self._line_bgr,
-            width=self._line_width,
+            color=self.settings.line_color,
+            width=self.settings.line_width,
         )
         return dst
 

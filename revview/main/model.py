@@ -143,6 +143,8 @@ class DifferenceDetection:
     ) -> tuple[np.ndarray, np.ndarray]:
         if not self._image_same_size(src1=src1, src2=src2):
             return (src1, src2)
+        src1 = self._convert_to_color(src=src1)
+        src2 = self._convert_to_color(src=src2)
         mask = self._mask_diff_area(src1=src1, src2=src2)
         cnts1 = self._extract_merged_mask_contour(
             src=src1,
@@ -162,13 +164,19 @@ class DifferenceDetection:
     def _image_same_size(self, src1: np.ndarray, src2: np.ndarray) -> bool:
         return src1.shape == src2.shape
 
+    def _convert_to_color(self, src: np.ndarray) -> np.ndarray:
+        n_ch = src.shape[-1]
+        if n_ch == 3:
+            return src
+        return cv2.cvtColor(src, cv2.COLOR_GRAY2RGB)
+
     def _mask_diff_area(
         self,
         src1: np.ndarray,
         src2: np.ndarray,
     ) -> np.ndarray:
-        gray1 = cv2.cvtColor(src1, cv2.COLOR_BGR2GRAY)
-        gray2 = cv2.cvtColor(src2, cv2.COLOR_BGR2GRAY)
+        gray1 = cv2.cvtColor(src1, cv2.COLOR_RGB2GRAY)
+        gray2 = cv2.cvtColor(src2, cv2.COLOR_RGB2GRAY)
         diff = np.abs(gray1.astype(np.int64) - gray2.astype(np.int64)).astype(
             np.uint8
         )
@@ -195,7 +203,7 @@ class DifferenceDetection:
                 color=(255, 255, 255),
                 width=-1,
                 min_area=self._min_cnt_area,
-                bg_bgr=(
+                bg_rgb=(
                     self.settings.bg_color
                     if self.settings.ignore_bg_rect
                     else None
@@ -203,7 +211,7 @@ class DifferenceDetection:
                 bg_del_margin=self._bg_del_margin,
                 extend_margin=self._extend_mergin,
             )
-            dgray = cv2.cvtColor(dmask, cv2.COLOR_BGR2GRAY)
+            dgray = cv2.cvtColor(dmask, cv2.COLOR_RGB2GRAY)
             cnts = cv2.findContours(
                 dgray,
                 cv2.RETR_EXTERNAL,
@@ -233,7 +241,7 @@ class DifferenceDetection:
         color: tuple[int, int, int],
         width: int = 1,
         min_area: int = 0,
-        bg_bgr: tuple[int, int, int] | None = None,
+        bg_rgb: tuple[int, int, int] | None = None,
         bg_del_margin: int = 0,
         extend_margin: int = 0,
     ) -> np.ndarray:
@@ -243,14 +251,14 @@ class DifferenceDetection:
 
             x, y, w, h = cv2.boundingRect(cnt)
 
-            if bg_bgr is not None:
+            if bg_rgb is not None:
                 x1, x2 = x, x + w
                 y1, y2 = y, y + h
                 if w > 2 * bg_del_margin:
                     x1, x2 = x1 + bg_del_margin, x2 - bg_del_margin
                 if h > 2 * bg_del_margin:
                     y1, y2 = y1 + bg_del_margin, y2 - bg_del_margin
-                if np.all(src[y1:y2, x1:x2] == list(bg_bgr)):
+                if np.all(src[y1:y2, x1:x2] == list(bg_rgb)):
                     continue
 
             cv2.rectangle(

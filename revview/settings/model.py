@@ -4,8 +4,6 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-SETTINGS_FILE = "revview_settings.json"
-
 
 def rgb_to_hex(code: tuple[int, int, int]) -> str:
     return "#{:02x}{:02x}{:02x}".format(*code)
@@ -37,20 +35,20 @@ class Settings:
     bg_color: tuple[int]
 
     @classmethod
-    def initialize(cls: Settings) -> Settings:
-        if Path(SETTINGS_FILE).is_file():
-            return cls.read()
+    def initialize(cls: Settings, fp: Path | str) -> Settings:
+        if Path(fp).is_file():
+            return cls.read(fp=fp)
         inst = get_default_settings()
-        inst.write()
+        inst.write(fp=fp)
         return inst
 
     @classmethod
-    def read(cls: Settings) -> Settings:
-        with Path(SETTINGS_FILE).open(mode="r") as f:
+    def read(cls: Settings, fp: Path | str) -> Settings:
+        with Path(fp).open(mode="r") as f:
             d = json.load(fp=f)
         return cls(**d)
 
-    def write(self) -> None:
+    def write(self, fp: Path | str) -> None:
         d = asdict(self)
-        with Path(SETTINGS_FILE).open(mode="w") as f:
+        with Path(fp).open(mode="w") as f:
             json.dump(obj=d, fp=f, indent=2)

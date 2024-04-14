@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Callable
 
@@ -28,104 +27,94 @@ def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
 
 
 class MainWindowController:
-    inst: MainWindowController
-    root: QtWidgets.QMainWindow
 
     def __init__(
         self,
-        window: QtWidgets.QMainWindow,
-        ui: Ui_MainWindow,
+        settings: Settings,
+        parent_window: QtWidgets.QMainWindow | None = None,
     ) -> None:
-        self.window = window
+        self.window = QtWidgets.QMainWindow(parent=parent_window)
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self.window)
+
+        self.settings = settings
         self.image_factory = ImageFactory()
-        settings = Settings.initialize()
 
         self.diffview = DifferenceView(
-            slideLbl_l=ui.slideLbl_L,
-            slideLbl_r=ui.slideLbl_R,
+            slideLbl_l=self.ui.slideLbl_L,
+            slideLbl_r=self.ui.slideLbl_R,
             detection=DifferenceDetection(settings=settings),
         )
 
-        self.file_btn_l = ui.fileBtn_L
-        self.file_btn_r = ui.fileBtn_R
-        self.fp_le_l = ui.fpLE_L
-        self.fp_le_r = ui.fpLE_R
-
         self.page_l = PageTurning(
-            total_lbl=ui.totpageLbl_L,
-            page_le=ui.pageLE_L,
-            first_btn=ui.firstBtn_L,
-            prev_btn=ui.prevBtn_L,
-            next_btn=ui.nextBtn_L,
-            last_btn=ui.lastBtn_L,
+            total_lbl=self.ui.totpageLbl_L,
+            page_le=self.ui.pageLE_L,
+            first_btn=self.ui.firstBtn_L,
+            prev_btn=self.ui.prevBtn_L,
+            next_btn=self.ui.nextBtn_L,
+            last_btn=self.ui.lastBtn_L,
             update_func=self.diffview.update_left,
         )
         self.page_r = PageTurning(
-            total_lbl=ui.totpageLbl_R,
-            page_le=ui.pageLE_R,
-            first_btn=ui.firstBtn_R,
-            prev_btn=ui.prevBtn_R,
-            next_btn=ui.nextBtn_R,
-            last_btn=ui.lastBtn_R,
+            total_lbl=self.ui.totpageLbl_R,
+            page_le=self.ui.pageLE_R,
+            first_btn=self.ui.firstBtn_R,
+            prev_btn=self.ui.prevBtn_R,
+            next_btn=self.ui.nextBtn_R,
+            last_btn=self.ui.lastBtn_R,
             update_func=self.diffview.update_right,
         )
         self.page_sync = SyncPageTurning(
             page_l=self.page_l,
             page_r=self.page_r,
-            first_btn=ui.firstBtn_sync,
-            prev_btn=ui.prevBtn_sync,
-            next_btn=ui.nextBtn_sync,
-            last_btn=ui.lastBtn_sync,
+            first_btn=self.ui.firstBtn_sync,
+            prev_btn=self.ui.prevBtn_sync,
+            next_btn=self.ui.nextBtn_sync,
+            last_btn=self.ui.lastBtn_sync,
         )
 
-        self.file_btn_l.clicked.connect(
-            lambda: self.set_image_pages(
-                fp_le=self.fp_le_l,
+        self.ui.fileBtn_L.clicked.connect(
+            lambda: self._set_image_pages(
+                fp_le=self.ui.fpLE_L,
                 page_tgt=self.page_l,
                 page_ref=self.page_r,
             )
         )
-        self.file_btn_r.clicked.connect(
-            lambda: self.set_image_pages(
-                fp_le=self.fp_le_r,
+        self.ui.fileBtn_R.clicked.connect(
+            lambda: self._set_image_pages(
+                fp_le=self.ui.fpLE_R,
                 page_tgt=self.page_r,
                 page_ref=self.page_l,
             )
         )
-        ui.pageLE_L.setValidator(QtGui.QIntValidator(bottom=1))
-        ui.pageLE_R.setValidator(QtGui.QIntValidator(bottom=1))
 
-        ui.pageLE_L.enterEvent = lambda _: self.show_slide_no(
+        self.ui.pageLE_L.setValidator(QtGui.QIntValidator(bottom=1))
+        self.ui.pageLE_R.setValidator(QtGui.QIntValidator(bottom=1))
+
+        self.ui.pageLE_L.enterEvent = lambda _: self._show_slide_no(
             page=self.page_l,
-            page_le=ui.pageLE_L,
+            page_le=self.ui.pageLE_L,
         )
-        ui.pageLE_R.enterEvent = lambda _: self.show_slide_no(
+        self.ui.pageLE_R.enterEvent = lambda _: self._show_slide_no(
             page=self.page_r,
-            page_le=ui.pageLE_R,
+            page_le=self.ui.pageLE_R,
         )
-        ui.settingsBtn.clicked.connect(
-            lambda: SettingsDialogController.run(
-                parent=self.window,
-                settings=settings,
-                callback=self.diffview.update_view,
-            )
+        self.ui.settingsBtn.clicked.connect(
+            lambda: SettingsDialogController(
+                settings=self.settings,
+                parent_window=self.window,
+                change_callback=self.diffview.update_view,
+            ).show_window()
         )
 
         self.page_l.disable()
         self.page_r.disable()
         self.page_sync.disable()
 
-        self._register_key_event(window)
+        self._register_key_event(self.window)
 
-    @classmethod
-    def run(cls: MainWindowController) -> None:
-        app = QtWidgets.QApplication(sys.argv)
-        window = QtWidgets.QMainWindow()
-        ui = Ui_MainWindow()
-        ui.setupUi(window)
-        cls(window=window, ui=ui)
-        window.show()
-        sys.exit(app.exec_())
+    def show_window(self) -> None:
+        self.window.show()
 
     def _register_key_event(self, widget: QtWidgets.QWidget):
         def key_event(event: QtGui.QKeyEvent) -> None:
@@ -141,7 +130,7 @@ class MainWindowController:
 
         widget.keyPressEvent = key_event
 
-    def set_image_pages(
+    def _set_image_pages(
         self,
         fp_le: QtWidgets.QLineEdit,
         page_tgt: PageTurning,
@@ -173,7 +162,7 @@ class MainWindowController:
         if page_ref.is_loaded():
             self.page_sync.enable()
 
-    def show_slide_no(
+    def _show_slide_no(
         self,
         page: PageTurning,
         page_le: QtWidgets.QLineEdit,
@@ -208,8 +197,10 @@ class DifferenceView:
         self.slide_lbl_r = slideLbl_r
         self.detection = detection
 
-        self.slide_lbl_l.resizeEvent = lambda _: self.set_resized_pixmap_left()
-        self.slide_lbl_r.resizeEvent = lambda _: self.set_resized_pixmap_right()
+        self.slide_lbl_l.resizeEvent = lambda _: self._set_resized_pixmap_left()
+        self.slide_lbl_r.resizeEvent = (
+            lambda _: self._set_resized_pixmap_right()
+        )
 
         self.img_l: np.ndarray | None = None
         self.img_r: np.ndarray | None = None
@@ -229,11 +220,11 @@ class DifferenceView:
             return
         if self.img_r is None:
             self.pixmap_l = ndarray_to_pixmap(self.img_l)
-            self.set_resized_pixmap_left()
+            self._set_resized_pixmap_left()
             return
         if self.img_l is None:
             self.pixmap_r = ndarray_to_pixmap(self.img_r)
-            self.set_resized_pixmap_right()
+            self._set_resized_pixmap_right()
             return
 
         dimg_l, dimg_r = self.detection.difference(
@@ -241,16 +232,16 @@ class DifferenceView:
         )
         self.pixmap_l = ndarray_to_pixmap(dimg_l)
         self.pixmap_r = ndarray_to_pixmap(dimg_r)
-        self.set_resized_pixmap_left()
-        self.set_resized_pixmap_right()
+        self._set_resized_pixmap_left()
+        self._set_resized_pixmap_right()
 
-    def set_resized_pixmap_left(self) -> None:
+    def _set_resized_pixmap_left(self) -> None:
         self._set_resized_pixmap(
             self.slide_lbl_l,
             self.pixmap_l,
         )
 
-    def set_resized_pixmap_right(self) -> None:
+    def _set_resized_pixmap_right(self) -> None:
         self._set_resized_pixmap(
             self.slide_lbl_r,
             self.pixmap_r,

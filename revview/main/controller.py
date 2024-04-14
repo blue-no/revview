@@ -41,6 +41,7 @@ class MainWindowController:
         self.image_factory = ImageFactory()
 
         self.diffview = DifferenceView(
+            parent_window=self.window,
             slideLbl_l=self.ui.slideLbl_L,
             slideLbl_r=self.ui.slideLbl_R,
             detection=DifferenceDetection(settings=settings),
@@ -162,6 +163,8 @@ class MainWindowController:
         if page_ref.is_loaded():
             self.page_sync.enable()
 
+        self.diffview.validate_image_size()
+
     def _show_slide_no(
         self,
         page: PageTurning,
@@ -189,10 +192,12 @@ class DifferenceView:
 
     def __init__(
         self,
+        parent_window: QtWidgets.QMainWindow,
         slideLbl_l: QtWidgets.QLabel,
         slideLbl_r: QtWidgets.QLabel,
         detection: DifferenceDetection,
     ) -> None:
+        self.parent_window = parent_window
         self.slide_lbl_l = slideLbl_l
         self.slide_lbl_r = slideLbl_r
         self.detection = detection
@@ -234,6 +239,20 @@ class DifferenceView:
         self.pixmap_r = ndarray_to_pixmap(dimg_r)
         self._set_resized_pixmap_left()
         self._set_resized_pixmap_right()
+
+    def validate_image_size(self) -> None:
+        if self.img_l is None or self.img_r is None:
+            return
+        size_l, size_r = self.img_l.shape[:2], self.img_r.shape[:2]
+        if size_l != size_r:
+            QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Warning,
+                "読み込みエラー",
+                "サイズが異なるため差分を表示できません。"
+                f"\n左：{size_l[0]}x{size_l[1]}\n右：{size_r[0]}x{size_r[1]}",
+                QtWidgets.QMessageBox.Ok,
+                parent=self.parent_window,
+            ).show()
 
     def _set_resized_pixmap_left(self) -> None:
         self._set_resized_pixmap(

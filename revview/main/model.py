@@ -12,6 +12,14 @@ from PIL import Image
 from revview.settings.model import Settings
 
 
+def imread(fp: Path | str):
+    fp = Path(fp)
+    if not fp.is_file():
+        raise FileNotFoundError
+    b = np.fromfile(fp.as_posix(), dtype=np.uint8)
+    return cv2.imdecode(b, cv2.IMREAD_COLOR)
+
+
 @contextmanager
 def open_presentation(fp: Path | str) -> Any:
     fp = Path(fp)
@@ -86,7 +94,7 @@ class PPTImage(BaseImage):
             img_fp = self._tmp_wd / img_fn
             slide.Export(img_fp.absolute(), self._suff.upper())
 
-            img = cv2.imread(img_fp.as_posix())
+            img = imread(img_fp.as_posix())
             pages_.append(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
             img_fp.unlink(missing_ok=True)

@@ -1,25 +1,51 @@
-from PyQt5.QtCore import QPoint, Qt
+from typing import Literal
+
+from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QLineEdit, QPushButton
 
 
-def apply_button_style(button: QPushButton) -> None:
+def apply_button_style(
+    button: QPushButton,
+    theme: Literal["primary", "secondary"] = "primary",
+) -> None:
 
-    args = [
-        "QPushButton {",
-        "height: 28px;",
-        "width: 105px;",
-        "border-radius: 4px;",
-        "border-style: none;",
-        "background-color: rgb(255, 255, 255);",
-        "}",
-        "QPushButton:hover {",
-        "background-color: rgb(250, 250, 250);",
-        "}",
-        "QPushButton:pressed{",
-        "background-color: rgb(240, 240, 240);",
-        "}",
-    ]
+    if theme == "primary":
+        args = [
+            "QPushButton {",
+            "height: 26px;",
+            "width: 105px;",
+            "border-radius: 4px;",
+            "border-style: none;",
+            "color: black;",
+            "background-color: rgb(255, 255, 255);",
+            "}",
+            "QPushButton:hover {",
+            "background-color: rgb(250, 250, 250);",
+            "}",
+            "QPushButton:pressed{",
+            "background-color: rgb(240, 240, 240);",
+            "}",
+        ]
+    elif theme == "secondary":
+        args = [
+            "QPushButton {",
+            "height: 26px;",
+            "width: 105px;",
+            "border-radius: 4px;",
+            "border-style: none;",
+            "color: white;",
+            "background-color: rgb(30, 136, 229);",
+            "}",
+            "QPushButton:hover {",
+            "background-color: rgb(25, 118, 210);",
+            "}",
+            "QPushButton:pressed{",
+            "background-color: rgb(21, 101, 192);",
+            "}",
+        ]
+    else:
+        raise NotImplementedError
 
     shadow = QGraphicsDropShadowEffect(
         offset=QPoint(1, 1),
@@ -36,7 +62,7 @@ def apply_icon_button_style(button: QPushButton) -> None:
     args = [
         "QPushButton {",
         "font-size: 14pt;",
-        "height: 45px;",
+        "height: 40px;",
         "width: 45px;",
         "border-radius: 4px;",
         "border-style: none;",
@@ -52,18 +78,35 @@ def apply_icon_button_style(button: QPushButton) -> None:
     button.setStyleSheet("".join(args))
 
 
-def apply_lineedit_style(lineedit: QLineEdit) -> None:
-
-    args = [
-        "QLineEdit {",
-        "height: 20px;",
-        "border-radius: 4px;",
-        "border-style: solid;",
-        "border-width: 2px;",
-        "border-color : rgb(255, 255, 255) rgb(255, 255, 255)",
-        "rgb(140, 140, 140) rgb(255, 255, 255);",
-        "background-color: rgb(255, 255, 255);",
-        "}",
-    ]
+def apply_lineedit_style(
+    lineedit: QLineEdit,
+    theme: Literal["primary", "secondary"] = "primary",
+) -> None:
+    if theme == "primary":
+        args = [
+            "QLineEdit {",
+            "height: 20px;",
+            "border-radius: 4px;",
+            "border-style: solid;",
+            "border-width: 2px;",
+            "border-color : rgb(255, 255, 255) rgb(255, 255, 255)",
+            "rgb(140, 140, 140) rgb(255, 255, 255);",
+            "background-color: rgb(255, 255, 255);",
+            "}",
+        ]
+    elif theme == "secondary":
+        args = [
+            "QLineEdit {",
+            "height: 20px;",
+            "border-radius: 4px;",
+            "border-style: solid;",
+            "border-width: 2px;",
+            "border-color : rgb(255, 255, 255) rgb(255, 255, 255)",
+            "rgb(30, 136, 229) rgb(255, 255, 255);",
+            "background-color: rgb(255, 255, 255);",
+            "}",
+        ]
+    else:
+        raise NotImplementedError
 
     lineedit.setStyleSheet("".join(args))

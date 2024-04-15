@@ -36,6 +36,9 @@ class SettingsDialogController:
         self.ui.ignoreBgCB.stateChanged.connect(
             lambda state: self._switch_ignore_bg(state=state)
         )
+        self.ui.applyMDesignCB.stateChanged.connect(
+            lambda state: self._switch_mdesign(state=state)
+        )
 
         self._set_button_style(
             button=self.ui.lineColorBtn,
@@ -47,6 +50,7 @@ class SettingsDialogController:
         )
         self.ui.lineWidthSB.setValue(settings.line_width)
         self.ui.ignoreBgCB.setChecked(settings.ignore_bg_rect)
+        self.ui.applyMDesignCB.setChecked(settings.apply_mdesign)
         self._update()
 
     def show_window(self) -> None:
@@ -78,6 +82,10 @@ class SettingsDialogController:
 
     def _switch_ignore_bg(self, state: Qt.CheckState) -> None:
         self.settings.ignore_bg_rect = state == Qt.Checked
+        self._update()
+
+    def _switch_mdesign(self, state: Qt.CheckState) -> None:
+        self.settings.apply_mdesign = state == Qt.Checked
         self._update()
 
     def _update(self) -> None:

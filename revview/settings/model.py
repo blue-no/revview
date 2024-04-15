@@ -23,6 +23,7 @@ def get_default_settings() -> Settings:
         line_width=2,
         ignore_bg_rect=True,
         bg_color=(255, 255, 255),
+        apply_mdesign=False,
     )
 
 
@@ -33,11 +34,15 @@ class Settings:
     line_width: int
     ignore_bg_rect: bool
     bg_color: tuple[int]
+    apply_mdesign: bool
 
     @classmethod
     def initialize(cls: Settings, fp: Path | str) -> Settings:
         if Path(fp).is_file():
-            return cls.read(fp=fp)
+            try:
+                return cls.read(fp=fp)
+            except:
+                pass
         inst = get_default_settings()
         inst.write(fp=fp)
         return inst

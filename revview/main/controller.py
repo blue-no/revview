@@ -14,7 +14,7 @@ from revview.settings.model import Settings
 
 
 def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
-    height, width, _ = image.shape
+    height, width = image.shape[:2]
     return QtGui.QPixmap(
         QtGui.QImage(
             image.data,

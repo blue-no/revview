@@ -21,10 +21,10 @@ def apply_button_style(
             "background-color: rgb(255, 255, 255);",
             "}",
             "QPushButton:hover {",
-            "background-color: rgb(250, 250, 250);",
+            "background-color: rgb(245, 245, 245);",
             "}",
             "QPushButton:pressed{",
-            "background-color: rgb(240, 240, 240);",
+            "background-color: rgb(235, 235, 235);",
             "}",
         ]
     elif theme == "secondary":
@@ -102,7 +102,7 @@ def apply_lineedit_style(
             "border-style: solid;",
             "border-width: 2px;",
             "border-color : rgb(255, 255, 255) rgb(255, 255, 255)",
-            "rgb(30, 136, 229) rgb(255, 255, 255);",
+            "rgb(21, 101, 192) rgb(255, 255, 255);",
             "background-color: rgb(255, 255, 255);",
             "}",
         ]

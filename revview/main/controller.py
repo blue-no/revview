@@ -263,7 +263,8 @@ class DifferenceView:
             return
 
         dimg_l, dimg_r = self.detection.difference(
-            src1=self.img_l, src2=self.img_r
+            src1=self.img_l,
+            src2=self.img_r,
         )
         self.pixmap_l = ndarray_to_pixmap(dimg_l)
         self.pixmap_r = ndarray_to_pixmap(dimg_r)
@@ -277,9 +278,10 @@ class DifferenceView:
         if size_l != size_r:
             QtWidgets.QMessageBox(
                 QtWidgets.QMessageBox.Warning,
-                "読み込みエラー",
+                "RevView",
                 "サイズが異なるため差分を表示できません。"
-                f"\n左：{size_l[0]}x{size_l[1]}\n右：{size_r[0]}x{size_r[1]}",
+                f"\n左: {size_l[0]} x {size_l[1]}\n右: {size_r[0]} x"
+                f" {size_r[1]}",
                 QtWidgets.QMessageBox.Ok,
                 parent=self.parent_window,
             ).show()

@@ -85,7 +85,8 @@ def apply_lineedit_style(
     if theme == "primary":
         args = [
             "QLineEdit {",
-            "height: 20px;",
+            "height: 22px;",
+            "font-size: 16px;",
             "border-radius: 4px;",
             "border-style: solid;",
             "border-width: 2px;",
@@ -97,7 +98,8 @@ def apply_lineedit_style(
     elif theme == "secondary":
         args = [
             "QLineEdit {",
-            "height: 20px;",
+            "height: 22px;",
+            "font-size: 16px;",
             "border-radius: 4px;",
             "border-style: solid;",
             "border-width: 2px;",

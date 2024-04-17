@@ -137,6 +137,9 @@ class TiffImage(BaseImage):
         for i in range(self._img.n_frames):
             self._img.seek(i)
             img = np.array(self._img.copy())
+            if img.dtype == np.bool8:
+                img = img.astype(dtype=np.uint8) * 255
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
             img = compress(img)
             pages_.append(img)
 

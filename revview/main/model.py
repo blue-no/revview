@@ -9,6 +9,7 @@ import numpy as np
 import win32com.client
 from PIL import Image
 
+from revview._const import _max_image_size
 from revview.settings.model import Settings
 
 
@@ -18,6 +19,15 @@ def imread(fp: Path | str):
         raise FileNotFoundError
     b = np.fromfile(fp.as_posix(), dtype=np.uint8)
     return cv2.imdecode(b, cv2.IMREAD_COLOR)
+
+
+def compress(image: np.ndarray) -> np.ndarray:
+    h, w = image.shape[:2]
+    hmax, wmax = _max_image_size
+    if h <= hmax and w <= wmax:
+        return image
+    ratio = min(hmax / h, wmax / w)
+    return cv2.resize(image, None, None, ratio, ratio)
 
 
 @contextmanager
@@ -95,7 +105,9 @@ class PPTImage(BaseImage):
             slide.Export(img_fp.absolute(), self._suff.upper())
 
             img = imread(img_fp.as_posix())
-            pages_.append(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = compress(img)
+            pages_.append(img)
 
             img_fp.unlink(missing_ok=True)
 
@@ -124,7 +136,9 @@ class TiffImage(BaseImage):
         pages_ = []
         for i in range(self._img.n_frames):
             self._img.seek(i)
-            pages_.append(np.array(self._img.copy()))
+            img = np.array(self._img.copy())
+            img = compress(img)
+            pages_.append(img)
 
             if callback is not None:
                 callback(i)

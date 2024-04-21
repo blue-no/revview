@@ -39,7 +39,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="slideLbl_L">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -58,7 +58,7 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="spacing">
            <number>12</number>
@@ -251,7 +251,7 @@
         <item row="1" column="1">
          <widget class="QLabel" name="slideLbl_R">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -306,7 +306,7 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <property name="spacing">
            <number>12</number>
@@ -468,6 +468,26 @@
            </spacer>
           </item>
          </layout>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="sizeLbl_R">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="sizeLbl_L">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

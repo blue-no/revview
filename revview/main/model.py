@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
@@ -49,6 +50,12 @@ def open_presentation(fp: Path | str) -> Any:
         app.Quit()
 
 
+@dataclass
+class Page:
+    data: np.ndarray
+    size: tuple[int, int]
+
+
 class ImageFactory:
 
     def __init__(self) -> None:
@@ -69,7 +76,7 @@ class ImageFactory:
 class BaseImage:
 
     def __init__(self) -> None:
-        self.pages: list[np.ndarray]
+        self.pages: list[Page]
         self.total: int
 
     def open(self, fp: Path | str) -> BaseImage:
@@ -78,7 +85,7 @@ class BaseImage:
     def load_pages(self, callback: Callable[[int], None] | None = None) -> None:
         raise NotImplementedError
 
-    def get_page(self, p: int) -> np.ndarray:
+    def get_page(self, p: int) -> Page:
         raise NotImplementedError
 
 
@@ -105,9 +112,10 @@ class PPTImage(BaseImage):
             slide.Export(img_fp.absolute(), self._suff.upper())
 
             img = imread(img_fp.as_posix())
+            size = img.shape[:2]
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = compress(img)
-            pages_.append(img)
+            pages_.append(Page(data=img, size=size))
 
             img_fp.unlink(missing_ok=True)
 
@@ -117,7 +125,7 @@ class PPTImage(BaseImage):
         self.pages = pages_
         self._prs.Close()
 
-    def get_page(self, p: int) -> np.ndarray:
+    def get_page(self, p: int) -> Page:
         return self.pages[p - 1]
 
 
@@ -137,18 +145,19 @@ class TiffImage(BaseImage):
         for i in range(self._img.n_frames):
             self._img.seek(i)
             img = np.array(self._img.copy())
+            size = img.shape[:2]
             if img.dtype == np.bool8:
                 img = img.astype(dtype=np.uint8) * 255
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
             img = compress(img)
-            pages_.append(img)
+            pages_.append(Page(data=img, size=size))
 
             if callback is not None:
                 callback(i)
 
         self.pages = pages_
 
-    def get_page(self, p: int) -> np.ndarray:
+    def get_page(self, p: int) -> Page:
         return self.pages[p - 1]
 
 
@@ -167,7 +176,7 @@ class DifferenceDetection:
         src2: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
         if not self._image_same_size(src1=src1, src2=src2):
-            return (src1, src2)
+            raise ValueError
         src1 = self._convert_to_color(src=src1)
         src2 = self._convert_to_color(src=src2)
         mask = self._mask_diff_area(src1=src1, src2=src2)

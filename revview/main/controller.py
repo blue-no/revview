@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
@@ -12,23 +13,43 @@ from revview._style import (
     apply_icon_button_style,
     apply_lineedit_style,
 )
-from revview.main.model import BaseImage, DifferenceDetection, ImageFactory
+from revview.main.model import (
+    BaseImage,
+    DifferenceDetection,
+    ImageFactory,
+    Page,
+)
 from revview.main.view import Ui_MainWindow
 from revview.settings.controller import SettingsDialogController
 from revview.settings.model import Settings
 
 
-def ndarray_to_pixmap(image: np.ndarray) -> QtGui.QPixmap:
-    height, width = image.shape[:2]
-    return QtGui.QPixmap(
-        QtGui.QImage(
-            image.data,
+@dataclass
+class PagePixmap:
+    data: QtGui.QPixmap
+
+    @classmethod
+    def from_ndarray(cls, image: np.ndarray) -> PagePixmap:
+        h, w = image.shape[:2]
+        data = QtGui.QPixmap(
+            QtGui.QImage(
+                image.data,
+                w,
+                h,
+                3 * w,
+                QtGui.QImage.Format_RGB888,
+            )
+        )
+        return PagePixmap(data=data)
+
+    def resize(self, height: int, width: int) -> PagePixmap:
+        data = self.data.scaled(
             width,
             height,
-            3 * width,
-            QtGui.QImage.Format_RGB888,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
         )
-    )
+        return PagePixmap(data=data)
 
 
 class MainWindowController:
@@ -47,6 +68,8 @@ class MainWindowController:
             parent_window=self.window,
             slideLbl_l=self.ui.slideLbl_L,
             slideLbl_r=self.ui.slideLbl_R,
+            sizeLbl_l=self.ui.sizeLbl_L,
+            sizeLbl_r=self.ui.sizeLbl_R,
             detection=DifferenceDetection(settings=settings),
         )
 
@@ -193,8 +216,6 @@ class MainWindowController:
         if page_ref.is_loaded():
             self.page_sync.enable()
 
-        self.diffview.validate_image_size()
-
     def _show_slide_no(
         self,
         page: PageTurning,
@@ -225,94 +246,102 @@ class DifferenceView:
         parent_window: QtWidgets.QMainWindow,
         slideLbl_l: QtWidgets.QLabel,
         slideLbl_r: QtWidgets.QLabel,
+        sizeLbl_l: QtWidgets.QLabel,
+        sizeLbl_r: QtWidgets.QLabel,
         detection: DifferenceDetection,
     ) -> None:
         self.parent_window = parent_window
         self.slide_lbl_l = slideLbl_l
         self.slide_lbl_r = slideLbl_r
+        self.size_lbl_l = sizeLbl_l
+        self.size_lbl_r = sizeLbl_r
         self.detection = detection
 
-        self.slide_lbl_l.resizeEvent = lambda _: self._set_resized_pixmap_left()
-        self.slide_lbl_r.resizeEvent = (
-            lambda _: self._set_resized_pixmap_right()
-        )
+        self.slide_lbl_l.resizeEvent = lambda _: self._set_view_left()
+        self.slide_lbl_r.resizeEvent = lambda _: self._set_view_right()
 
-        self.img_l: np.ndarray | None = None
-        self.img_r: np.ndarray | None = None
-        self.pixmap_l: QtGui.QPixmap | None = None
-        self.pixmap_r: QtGui.QPixmap | None = None
+        self.page_l: Page | None = None
+        self.page_r: Page | None = None
+        self.pixmap_l: PagePixmap | None = None
+        self.pixmap_r: PagePixmap | None = None
 
-    def update_left(self, img: np.ndarray) -> None:
-        self.img_l = img
+    def update_left(self, page: Page) -> None:
+        self.page_l = page
         self.update_view()
 
-    def update_right(self, img: np.ndarray) -> None:
-        self.img_r = img
+    def update_right(self, page: Page) -> None:
+        self.page_r = page
         self.update_view()
 
     def update_view(self) -> None:
-        if self.img_r is None and self.img_l is None:
+        if self.page_l is not None:
+            self.pixmap_l = PagePixmap.from_ndarray(self.page_l.data)
+            self._set_view_left()
+        if self.page_r is not None:
+            self.pixmap_r = PagePixmap.from_ndarray(self.page_r.data)
+            self._set_view_right()
+        if self.page_r is None or self.page_l is None:
             return
-        if self.img_r is None:
-            self.pixmap_l = ndarray_to_pixmap(self.img_l)
-            self._set_resized_pixmap_left()
-            return
-        if self.img_l is None:
-            self.pixmap_r = ndarray_to_pixmap(self.img_r)
-            self._set_resized_pixmap_right()
-            return
-
-        dimg_l, dimg_r = self.detection.difference(
-            src1=self.img_l,
-            src2=self.img_r,
-        )
-        self.pixmap_l = ndarray_to_pixmap(dimg_l)
-        self.pixmap_r = ndarray_to_pixmap(dimg_r)
-        self._set_resized_pixmap_left()
-        self._set_resized_pixmap_right()
-
-    def validate_image_size(self) -> None:
-        if self.img_l is None or self.img_r is None:
-            return
-        size_l, size_r = self.img_l.shape[:2], self.img_r.shape[:2]
-        if size_l != size_r:
-            QtWidgets.QMessageBox(
-                QtWidgets.QMessageBox.Warning,
-                "RevView",
-                "サイズが異なるため差分を表示できません。"
-                f"\n左: {size_l[0]} x {size_l[1]}\n右: {size_r[0]} x"
-                f" {size_r[1]}",
-                QtWidgets.QMessageBox.Ok,
-                parent=self.parent_window,
-            ).show()
-
-    def _set_resized_pixmap_left(self) -> None:
-        self._set_resized_pixmap(
-            self.slide_lbl_l,
-            self.pixmap_l,
-        )
-
-    def _set_resized_pixmap_right(self) -> None:
-        self._set_resized_pixmap(
-            self.slide_lbl_r,
-            self.pixmap_r,
-        )
-
-    def _set_resized_pixmap(
-        self,
-        label: QtWidgets.QLabel,
-        pixmap: QtGui.QPixmap,
-    ) -> None:
-        if pixmap is None:
-            return
-        label.setPixmap(
-            pixmap.scaled(
-                label.width(),
-                label.height(),
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
+        if self.page_l.size == self.page_r.size:
+            data_l, data_r = self.detection.difference(
+                src1=self.page_l.data,
+                src2=self.page_r.data,
             )
+            self.pixmap_l = PagePixmap.from_ndarray(data_l)
+            self.pixmap_r = PagePixmap.from_ndarray(data_r)
+
+        self._set_view_left()
+        self._set_view_right()
+
+    def _set_view_left(self) -> None:
+        if self.pixmap_l is None:
+            return
+        self._set_view(
+            page_tgt=self.page_l,
+            page_ref=self.page_r,
+            pixmap=self.pixmap_l,
+            slide_label=self.slide_lbl_l,
+            size_label=self.size_lbl_l,
         )
+
+    def _set_view_right(self) -> None:
+        if self.pixmap_r is None:
+            return
+        self._set_view(
+            page_tgt=self.page_r,
+            page_ref=self.page_l,
+            pixmap=self.pixmap_r,
+            slide_label=self.slide_lbl_r,
+            size_label=self.size_lbl_r,
+        )
+
+    def _set_view(
+        self,
+        page_tgt: Page,
+        page_ref: Page,
+        pixmap: PagePixmap,
+        slide_label: QtWidgets.QLabel,
+        size_label: QtWidgets.QLabel,
+    ) -> None:
+        slide_label.setPixmap(
+            pixmap.resize(
+                width=slide_label.width(),
+                height=slide_label.height(),
+            ).data
+        )
+
+        w_tgt, h_tgt = page_tgt.size
+        if page_ref is not None:
+            w_ref, h_ref = page_ref.size
+        else:
+            w_ref, h_ref = w_tgt, h_tgt
+
+        if w_tgt != w_ref or h_tgt != h_ref:
+            size_label.setText(f"⚠ サイズ: {w_tgt} x {h_tgt}  ")
+            size_label.setStyleSheet("QLabel { color: orange; }")
+        else:
+            size_label.setText(f"サイズ: {w_tgt} x {h_tgt}")
+            size_label.setStyleSheet("QLabel { color: black; }")
 
 
 class SyncPageTurning:
@@ -377,7 +406,7 @@ class PageTurning:
         prev_btn: QtWidgets.QPushButton,
         next_btn: QtWidgets.QPushButton,
         last_btn: QtWidgets.QPushButton,
-        update_func: Callable[[np.ndarray], None],
+        update_func: Callable[[Page], None],
     ) -> None:
         self.img = None
         self.total_lbl = total_lbl

@@ -8,6 +8,7 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
+from revview._const import _file_dialog_root
 from revview._style import (
     apply_button_style,
     apply_icon_button_style,
@@ -233,6 +234,7 @@ class MainWindowController:
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
             filter=f"ファイル ({ftypes})",
+            directory=_file_dialog_root,
         )
         if dialog.exec_():
             return dialog.selectedFiles()[0]

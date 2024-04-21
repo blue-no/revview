@@ -19,11 +19,11 @@ def change_brightness(code: tuple[int, int, int], ratio: float) -> None:
 
 def get_default_settings() -> Settings:
     return Settings(
-        line_color=(255, 0, 0),
+        line_color=(255, 85, 0),
         line_width=2,
         ignore_bg_rect=True,
         bg_color=(255, 255, 255),
-        apply_mdesign=False,
+        apply_mdesign=True,
     )
 
 

@@ -17,24 +17,15 @@ def change_brightness(code: tuple[int, int, int], ratio: float) -> None:
     return tuple(int(i * ratio) for i in code)
 
 
-def get_default_settings() -> Settings:
-    return Settings(
-        line_color=(255, 85, 0),
-        line_width=2,
-        ignore_bg_rect=True,
-        bg_color=(255, 255, 255),
-        apply_mdesign=True,
-    )
-
-
 @dataclass
 class Settings:
 
-    line_color: tuple[int]
-    line_width: int
-    ignore_bg_rect: bool
-    bg_color: tuple[int]
-    apply_mdesign: bool
+    line_color: tuple[int] = (255, 85, 0)
+    line_width: int = 2
+    ignore_bg_rect: bool = True
+    bg_color: tuple[int] = (255, 255, 255)
+    apply_mdesign: bool = True
+    last_folder: str = "."
 
     @classmethod
     def initialize(cls: Settings, fp: Path | str) -> Settings:
@@ -43,7 +34,7 @@ class Settings:
                 return cls.read(fp=fp)
             except:
                 pass
-        inst = get_default_settings()
+        inst = cls()
         inst.write(fp=fp)
         return inst
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -8,7 +9,7 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from revview._const import _file_dialog_root
+from revview._const import _settings_file
 from revview._style import (
     apply_button_style,
     apply_icon_button_style,
@@ -234,10 +235,13 @@ class MainWindowController:
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
             filter=f"ファイル ({ftypes})",
-            directory=_file_dialog_root,
+            directory=self.settings.last_folder,
         )
         if dialog.exec_():
-            return dialog.selectedFiles()[0]
+            fp = dialog.selectedFiles()[0]
+            self.settings.last_folder = os.path.dirname(fp)
+            self.settings.write(fp=_settings_file)
+            return fp
         return None
 
 

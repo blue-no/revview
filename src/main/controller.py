@@ -9,21 +9,21 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from revview._const import _settings_file
-from revview._style import (
+from src._const import _settings_file
+from src._style import (
     apply_button_style,
     apply_icon_button_style,
     apply_lineedit_style,
 )
-from revview.main.model import (
+from src.main.model import (
     BaseImage,
     DifferenceDetection,
     ImageFactory,
     Page,
 )
-from revview.main.view import Ui_MainWindow
-from revview.settings.controller import SettingsDialogController
-from revview.settings.model import Settings
+from src.main.view import Ui_MainWindow
+from src.settings.controller import SettingsDialogController
+from src.settings.model import Settings
 
 
 @dataclass

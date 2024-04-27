@@ -10,8 +10,8 @@ import numpy as np
 import win32com.client
 from PIL import Image
 
-from revview._const import _max_image_size
-from revview.settings.model import Settings
+from src._const import _max_image_size
+from src.settings.model import Settings
 
 
 def imread(fp: Path | str):

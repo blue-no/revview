@@ -5,9 +5,9 @@ from typing import Callable
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
-from revview._const import _settings_file
-from revview.settings.model import Settings, rgb_to_hex
-from revview.settings.view import Ui_SettingsDialog
+from src._const import _settings_file
+from src.settings.model import Settings, rgb_to_hex
+from src.settings.view import Ui_SettingsDialog
 
 
 class SettingsDialogController:

@@ -9,21 +9,21 @@ import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from src._const import _settings_file
-from src._style import (
+from revview._const import _settings_file
+from revview._style import (
     apply_button_style,
     apply_icon_button_style,
     apply_lineedit_style,
 )
-from src.main.model import (
+from revview.main.model import (
     BaseImage,
     DifferenceDetection,
     ImageFactory,
     Page,
 )
-from src.main.view import Ui_MainWindow
-from src.settings.controller import SettingsDialogController
-from src.settings.model import Settings
+from revview.main.view import Ui_MainWindow
+from revview.settings.controller import SettingsDialogController
+from revview.settings.model import Settings
 
 
 @dataclass
@@ -103,17 +103,35 @@ class MainWindowController:
         )
 
         self.ui.fileBtn_L.clicked.connect(
-            lambda: self._set_image_pages(
+            lambda: self._set_image_pages_with_dialog(
                 fp_le=self.ui.fpLE_L,
                 page_tgt=self.page_l,
                 page_ref=self.page_r,
             )
         )
         self.ui.fileBtn_R.clicked.connect(
-            lambda: self._set_image_pages(
+            lambda: self._set_image_pages_with_dialog(
                 fp_le=self.ui.fpLE_R,
                 page_tgt=self.page_r,
                 page_ref=self.page_l,
+            )
+        )
+        self.ui.slideLbl_L.dragEnterEvent = self._validate_file_type
+        self.ui.slideLbl_L.dropEvent = (
+            lambda event: self._set_image_pages_with_filedrop(
+                event=event,
+                fp_le=self.ui.fpLE_L,
+                page_tgt=self.page_l,
+                page_ref=self.page_r,
+            )
+        )
+        self.ui.slideLbl_R.dragEnterEvent = self._validate_file_type
+        self.ui.slideLbl_R.dropEvent = (
+            lambda event: self._set_image_pages_with_filedrop(
+                event=event,
+                fp_le=self.ui.fpLE_R,
+                page_tgt=self.page_r,
+                page_ref=self.page_r,
             )
         )
 
@@ -172,7 +190,7 @@ class MainWindowController:
 
         return ui
 
-    def _register_key_event(self, widget: QtWidgets.QWidget):
+    def _register_key_event(self, widget: QtWidgets.QWidget) -> None:
         def key_event(event: QtGui.QKeyEvent) -> None:
             key = event.key()
             if key == Qt.Key_PageUp:
@@ -186,7 +204,37 @@ class MainWindowController:
 
         widget.keyPressEvent = key_event
 
-    def _set_image_pages(
+    def _validate_file_type(self, event: QtGui.QDragEnterEvent) -> None:
+        if not event.mimeData().hasUrls:
+            event.ignore()
+            return
+        urls = event.mimeData().urls()
+        if len(urls) > 1:
+            event.ignore()
+            return
+        fp = Path(urls[0].toLocalFile())
+        if fp.suffix.lower() not in self.image_factory.supported_suffs():
+            event.ignore()
+            return
+        event.accept()
+
+    def _set_image_pages_with_filedrop(
+        self,
+        event: QtGui.QDropEvent,
+        fp_le: QtWidgets.QLineEdit,
+        page_tgt: PageTurning,
+        page_ref: PageTurning,
+    ) -> None:
+        fp = Path(event.mimeData().urls()[0].toLocalFile())
+
+        self._set_image_pages(
+            fp=fp,
+            fp_le=fp_le,
+            page_tgt=page_tgt,
+            page_ref=page_ref,
+        )
+
+    def _set_image_pages_with_dialog(
         self,
         fp_le: QtWidgets.QLineEdit,
         page_tgt: PageTurning,
@@ -195,6 +243,21 @@ class MainWindowController:
         fp = self._select_file()
         if fp is None:
             return
+
+        self._set_image_pages(
+            fp=fp,
+            fp_le=fp_le,
+            page_tgt=page_tgt,
+            page_ref=page_ref,
+        )
+
+    def _set_image_pages(
+        self,
+        fp: Path,
+        fp_le: QtWidgets.QLineEdit,
+        page_tgt: PageTurning,
+        page_ref: PageTurning,
+    ) -> None:
 
         suff = Path(fp).suffix
         page_cls = self.image_factory.create(type_=suff)
@@ -212,7 +275,7 @@ class MainWindowController:
         page_tgt.load_image(img=img)
         pbar.close()
 
-        fp_le.setText(fp)
+        fp_le.setText(fp.as_posix())
         page_tgt.go_first_page()
         page_tgt.enable()
         if page_ref.is_loaded():
@@ -228,7 +291,7 @@ class MainWindowController:
             return
         page.go_page_no(p=int(page_le.text()))
 
-    def _select_file(self) -> str | None:
+    def _select_file(self) -> Path | None:
         ftypes = " ".join(
             ["*" + s for s in self.image_factory.supported_suffs()]
         )
@@ -238,8 +301,8 @@ class MainWindowController:
             directory=self.settings.last_folder,
         )
         if dialog.exec_():
-            fp = dialog.selectedFiles()[0]
-            self.settings.last_folder = os.path.dirname(fp)
+            fp = Path(dialog.selectedFiles()[0])
+            self.settings.last_folder = fp.parent.as_posix()
             self.settings.write(fp=_settings_file)
             return fp
         return None

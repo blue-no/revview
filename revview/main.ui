@@ -50,8 +50,11 @@
             <height>100</height>
            </size>
           </property>
+          <property name="acceptDrops">
+           <bool>true</bool>
+          </property>
           <property name="text">
-           <string/>
+           <string>ファイルをドロップ</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -262,8 +265,11 @@
             <height>100</height>
            </size>
           </property>
+          <property name="acceptDrops">
+           <bool>true</bool>
+          </property>
           <property name="text">
-           <string/>
+           <string>ファイルをドロップ</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>

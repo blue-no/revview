@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Literal
 
 from PyQt5.QtCore import QPoint
@@ -8,6 +10,18 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
 )
+
+
+def rgb_to_hex(code: tuple[int, int, int]) -> str:
+    return "#{:02x}{:02x}{:02x}".format(*code)
+
+
+def hex_to_rgb(code: str) -> tuple[int, int, int]:
+    return tuple(int(code[i : i + 2], 16) for i in range(0, 6, 2))
+
+
+def change_brightness(code: tuple[int, int, int], ratio: float) -> None:
+    return tuple(int(i * ratio) for i in code)
 
 
 def apply_button_style(
@@ -168,3 +182,20 @@ def apply_warning_label_style(
         raise NotImplementedError
 
     label.setStyleSheet("".join(args))
+
+
+def apply_color_picker_button_style(
+    button: QPushButton,
+    color: tuple[int, int, int],
+) -> None:
+    args = [
+        "QPushButton {",
+        "border-radius: 5px;",
+        "border-style: solid;",
+        "border-color: lightgray;",
+        "border-width: 1px;",
+        f"background-color: {rgb_to_hex(color)};",
+        "}",
+    ]
+
+    button.setStyleSheet("".join(args))

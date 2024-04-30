@@ -6,7 +6,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
 from revview._const import _settings_file
-from revview.settings.model import Settings, rgb_to_hex
+from revview._style import apply_color_picker_button_style
+from revview.settings.model import Settings
 from revview.settings.view import Ui_SettingsDialog
 
 
@@ -40,13 +41,13 @@ class SettingsDialogController:
             lambda state: self._switch_mdesign(state=state)
         )
 
-        self._set_button_style(
+        apply_color_picker_button_style(
             button=self.ui.lineColorBtn,
-            background_color=settings.line_color,
+            color=settings.line_color,
         )
-        self._set_button_style(
+        apply_color_picker_button_style(
             button=self.ui.bgColorBtn,
-            background_color=settings.bg_color,
+            color=settings.bg_color,
         )
         self.ui.lineWidthSB.setValue(settings.line_width)
         self.ui.ignoreBgCB.setChecked(settings.ignore_bg_rect)
@@ -62,8 +63,9 @@ class SettingsDialogController:
         rgb = self._select_color_with_dialog()
         if rgb is None:
             return
-        self._set_button_style(
-            button=self.ui.lineColorBtn, background_color=rgb
+        apply_color_picker_button_style(
+            button=self.ui.lineColorBtn,
+            color=rgb,
         )
         self.settings.line_color = rgb
         self._update()
@@ -76,7 +78,10 @@ class SettingsDialogController:
         rgb = self._select_color_with_dialog()
         if rgb is None:
             return
-        self._set_button_style(button=self.ui.bgColorBtn, background_color=rgb)
+        apply_color_picker_button_style(
+            button=self.ui.bgColorBtn,
+            color=rgb,
+        )
         self.settings.bg_color = rgb
         self._update()
 
@@ -99,20 +104,3 @@ class SettingsDialogController:
             return None
         rgb = color.getRgb()[:3]
         return rgb
-
-    def _set_button_style(
-        self,
-        button: QtWidgets.QPushButton,
-        background_color: tuple[int, int, int],
-    ) -> None:
-        args = [
-            "QPushButton {",
-            "border-radius: 5px;",
-            "border-style: solid;",
-            "border-color: lightgray;",
-            "border-width: 1px;",
-            f"background-color: {rgb_to_hex(background_color)};",
-            "}",
-        ]
-
-        button.setStyleSheet("".join(args))

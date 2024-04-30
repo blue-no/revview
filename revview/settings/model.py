@@ -5,18 +5,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-def rgb_to_hex(code: tuple[int, int, int]) -> str:
-    return "#{:02x}{:02x}{:02x}".format(*code)
-
-
-def hex_to_rgb(code: str) -> tuple[int, int, int]:
-    return tuple(int(code[i : i + 2], 16) for i in range(0, 6, 2))
-
-
-def change_brightness(code: tuple[int, int, int], ratio: float) -> None:
-    return tuple(int(i * ratio) for i in code)
-
-
 @dataclass
 class Settings:
 

@@ -50,7 +50,7 @@ class SettingsDialogController:
         )
         self.ui.lineWidthSB.setValue(settings.line_width)
         self.ui.ignoreBgCB.setChecked(settings.ignore_bg_rect)
-        self.ui.applyMDesignCB.setChecked(settings.apply_mdesign)
+        self.ui.applyMDesignCB.setChecked(settings.apply_legacy)
         self._update()
 
     def show_window(self) -> None:
@@ -85,7 +85,7 @@ class SettingsDialogController:
         self._update()
 
     def _switch_mdesign(self, state: Qt.CheckState) -> None:
-        self.settings.apply_mdesign = state == Qt.Checked
+        self.settings.apply_legacy = state == Qt.Checked
         self._update()
 
     def _update(self) -> None:

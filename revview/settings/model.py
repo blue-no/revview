@@ -24,7 +24,7 @@ class Settings:
     line_width: int = 2
     ignore_bg_rect: bool = True
     bg_color: tuple[int] = (255, 255, 255)
-    apply_mdesign: bool = True
+    apply_legacy: bool = False
     last_folder: str = "."
 
     @classmethod

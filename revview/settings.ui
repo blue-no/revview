@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>310</width>
     <height>280</height>
    </rect>
   </property>
@@ -29,7 +29,7 @@
     <rect>
      <x>30</x>
      <y>20</y>
-     <width>81</width>
+     <width>161</width>
      <height>21</height>
     </rect>
    </property>
@@ -42,7 +42,7 @@
     <rect>
      <x>30</x>
      <y>70</y>
-     <width>131</width>
+     <width>161</width>
      <height>21</height>
     </rect>
    </property>
@@ -84,7 +84,7 @@
     <rect>
      <x>30</x>
      <y>120</y>
-     <width>221</width>
+     <width>251</width>
      <height>21</height>
     </rect>
    </property>
@@ -126,12 +126,12 @@
     <rect>
      <x>30</x>
      <y>200</y>
-     <width>211</width>
+     <width>251</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>マテリアルデザインを適用する</string>
+    <string>レガシーデザインを適用する</string>
    </property>
    <property name="checked">
     <bool>true</bool>
@@ -142,7 +142,7 @@
     <rect>
      <x>50</x>
      <y>220</y>
-     <width>181</width>
+     <width>231</width>
      <height>21</height>
     </rect>
    </property>

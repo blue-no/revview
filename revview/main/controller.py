@@ -166,7 +166,7 @@ class MainWindowController:
         ui = Ui_MainWindow()
         ui.setupUi(window)
 
-        if self.settings.apply_mdesign:
+        if not self.settings.apply_legacy:
             apply_icon_button_style(ui.fileBtn_L)
             apply_icon_button_style(ui.fileBtn_R)
             apply_icon_button_style(ui.settingsBtn)

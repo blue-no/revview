@@ -268,6 +268,8 @@ class Ui_MainWindow(object):
         self.sizeLbl_L.setAlignment(QtCore.Qt.AlignCenter)
         self.sizeLbl_L.setObjectName("sizeLbl_L")
         self.gridLayout_3.addWidget(self.sizeLbl_L, 2, 0, 1, 1)
+        self.gridLayout_3.setColumnStretch(0, 1)
+        self.gridLayout_3.setColumnStretch(1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_3)
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setContentsMargins(-1, 12, -1, -1)

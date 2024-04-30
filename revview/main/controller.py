@@ -11,8 +11,10 @@ from PyQt5.QtCore import Qt
 from revview._const import _settings_file
 from revview._style import (
     apply_button_style,
+    apply_droppable_label_style,
     apply_icon_button_style,
     apply_lineedit_style,
+    apply_warning_label_style,
 )
 from revview.main.model import (
     BaseImage,
@@ -115,19 +117,43 @@ class MainWindowController:
                 page_ref=self.page_l,
             )
         )
-        self.ui.slideLbl_L.dragEnterEvent = self._validate_file_type
+        self.ui.slideLbl_L.dragEnterEvent = (
+            lambda event: self._drag_enter_event(
+                event=event,
+                slide_lbl=self.ui.slideLbl_L,
+            )
+        )
+        self.ui.slideLbl_L.dragLeaveEvent = (
+            lambda event: self._drag_leave_event(
+                event=event,
+                slide_lbl=self.ui.slideLbl_L,
+            )
+        )
         self.ui.slideLbl_L.dropEvent = (
             lambda event: self._set_image_pages_with_filedrop(
                 event=event,
+                slide_lbl=self.ui.slideLbl_L,
                 fp_le=self.ui.fpLE_L,
                 page_tgt=self.page_l,
                 page_ref=self.page_r,
             )
         )
-        self.ui.slideLbl_R.dragEnterEvent = self._validate_file_type
+        self.ui.slideLbl_R.dragEnterEvent = (
+            lambda event: self._drag_enter_event(
+                event=event,
+                slide_lbl=self.ui.slideLbl_R,
+            )
+        )
+        self.ui.slideLbl_R.dragLeaveEvent = (
+            lambda event: self._drag_leave_event(
+                event=event,
+                slide_lbl=self.ui.slideLbl_R,
+            )
+        )
         self.ui.slideLbl_R.dropEvent = (
             lambda event: self._set_image_pages_with_filedrop(
                 event=event,
+                slide_lbl=self.ui.slideLbl_R,
                 fp_le=self.ui.fpLE_R,
                 page_tgt=self.page_r,
                 page_ref=self.page_r,
@@ -186,6 +212,8 @@ class MainWindowController:
             apply_lineedit_style(ui.fpLE_R, theme="secondary")
             apply_lineedit_style(ui.pageLE_L, theme="primary")
             apply_lineedit_style(ui.pageLE_R, theme="primary")
+            apply_droppable_label_style(ui.slideLbl_L, theme="normal")
+            apply_droppable_label_style(ui.slideLbl_R, theme="normal")
 
         return ui
 
@@ -203,7 +231,11 @@ class MainWindowController:
 
         widget.keyPressEvent = key_event
 
-    def _validate_file_type(self, event: QtGui.QDragEnterEvent) -> None:
+    def _drag_enter_event(
+        self,
+        event: QtGui.QDragEnterEvent,
+        slide_lbl: QtWidgets.QLabel,
+    ) -> None:
         if not event.mimeData().hasUrls:
             event.ignore()
             return
@@ -216,10 +248,21 @@ class MainWindowController:
             event.ignore()
             return
         event.accept()
+        if not self.settings.apply_legacy:
+            apply_droppable_label_style(label=slide_lbl, theme="hover")
+
+    def _drag_leave_event(
+        self,
+        event: QtGui.QDragLeaveEvent,
+        slide_lbl: QtWidgets.QLabel,
+    ) -> None:
+        if not self.settings.apply_legacy:
+            apply_droppable_label_style(label=slide_lbl, theme="normal")
 
     def _set_image_pages_with_filedrop(
         self,
         event: QtGui.QDropEvent,
+        slide_lbl: QtWidgets.QLabel,
         fp_le: QtWidgets.QLineEdit,
         page_tgt: PageTurning,
         page_ref: PageTurning,
@@ -232,6 +275,9 @@ class MainWindowController:
             page_tgt=page_tgt,
             page_ref=page_ref,
         )
+
+        if not self.settings.apply_legacy:
+            apply_droppable_label_style(label=slide_lbl, theme="normal")
 
     def _set_image_pages_with_dialog(
         self,
@@ -406,10 +452,10 @@ class DifferenceView:
 
         if w_tgt != w_ref or h_tgt != h_ref:
             size_label.setText(f"⚠ サイズ: {w_tgt} x {h_tgt}  ")
-            size_label.setStyleSheet("QLabel { color: orange; }")
+            apply_warning_label_style(size_label, theme="warn")
         else:
             size_label.setText(f"サイズ: {w_tgt} x {h_tgt}")
-            size_label.setStyleSheet("QLabel { color: black; }")
+            apply_warning_label_style(size_label, theme="normal")
 
 
 class SyncPageTurning:

@@ -2,7 +2,12 @@ from typing import Literal
 
 from PyQt5.QtCore import QPoint
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QLineEdit, QPushButton
+from PyQt5.QtWidgets import (
+    QGraphicsDropShadowEffect,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+)
 
 
 def apply_button_style(
@@ -61,7 +66,7 @@ def apply_icon_button_style(button: QPushButton) -> None:
 
     args = [
         "QPushButton {",
-        "font-size: 14pt;",
+        "font-size: 12pt;",
         "height: 40px;",
         "width: 45px;",
         "border-radius: 4px;",
@@ -112,3 +117,54 @@ def apply_lineedit_style(
         raise NotImplementedError
 
     lineedit.setStyleSheet("".join(args))
+
+
+def apply_droppable_label_style(
+    label: QLabel,
+    theme: Literal["normal", "hover"],
+) -> None:
+    if theme == "normal":
+        args = [
+            "QLabel {",
+            "font-family: Meiryo UI;",
+            "background-color: rgb(230, 230, 230);",
+            "}",
+        ]
+    elif theme == "hover":
+        args = [
+            "QLabel {",
+            "font-family: Meiryo UI;",
+            "border-style: solid;",
+            "border-width: 2px;",
+            "border-color: rgb(21, 101, 192);",
+            "background-color: rgb(220, 220, 220);",
+            "}",
+        ]
+    else:
+        raise NotImplementedError
+
+    label.setStyleSheet("".join(args))
+
+
+def apply_warning_label_style(
+    label: QLabel,
+    theme: Literal["normal", "warn"],
+) -> None:
+    if theme == "normal":
+        args = [
+            "QLabel {",
+            "font-family: Meiryo UI;",
+            "color: black;",
+            "}",
+        ]
+    elif theme == "warn":
+        args = [
+            "QLabel {",
+            "font-family: Meiryo UI;",
+            "color: orange;",
+            "}",
+        ]
+    else:
+        raise NotImplementedError
+
+    label.setStyleSheet("".join(args))

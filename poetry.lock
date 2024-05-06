@@ -876,17 +876,6 @@ qa = ["flake8 (==5.0.4)", "mypy (==0.971)", "types-setuptools (==67.2.0.1)"]
 testing = ["docopt", "pytest"]
 
 [[package]]
-name = "pdfrw"
-version = "0.4"
-description = "PDF file reader/writer library"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pdfrw-0.4-py2.py3-none-any.whl", hash = "sha256:758289edaa3b672e9a1a67504be73c18ec668d4e5b9d5ac9cbc0dc753d8d196b"},
-    {file = "pdfrw-0.4.tar.gz", hash = "sha256:0dc0494a0e6561b268542b28ede2280387c2728114f117d3bb5d8e4787b93ef4"},
-]
-
-[[package]]
 name = "pefile"
 version = "2023.2.7"
 description = "Python PE parsing module"
@@ -1435,44 +1424,6 @@ files = [
 cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
-name = "reportlab"
-version = "3.6.0"
-description = "The Reportlab Toolkit"
-optional = false
-python-versions = ">=2.7, >=3.6, <4"
-files = [
-    {file = "reportlab-3.6.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b60f12fc525ab3b5eb59062924a87068fb2252cf01ddae419fcce05c63ef0251"},
-    {file = "reportlab-3.6.0-cp36-cp36m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:3b21bf7e242cbd60cea33ed09590f367c8b2a2378ea64f9613777af7daecb769"},
-    {file = "reportlab-3.6.0-cp36-cp36m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:ed5b1845f0b9333c976486fa7cb46f0fa31384cd07c2e07b1c37f357940ced59"},
-    {file = "reportlab-3.6.0-cp36-cp36m-win32.whl", hash = "sha256:6821d60375cf63bd3bf3a89fdb15a5cd487e68888a3c828edd78c7f10a50bbeb"},
-    {file = "reportlab-3.6.0-cp36-cp36m-win_amd64.whl", hash = "sha256:95da13f82b47da0a53951751ac801ca829d719669be243d93ec2649821b3eac1"},
-    {file = "reportlab-3.6.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:d82bfb2beddb53565fe98a66febf36a00fa893c468adef21957895bae5de141d"},
-    {file = "reportlab-3.6.0-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:cf921311fb8200af695ff1c37fa97e83360b6cb9884b4915f4453f0d76562285"},
-    {file = "reportlab-3.6.0-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:ab108d6bafbd854eab527816b365f50053bc04a0c3206169c0d943531ac837b7"},
-    {file = "reportlab-3.6.0-cp37-cp37m-win32.whl", hash = "sha256:3077a78d722ac82d0358da5828217ff3423c23698cdf91147ba402b9692147b6"},
-    {file = "reportlab-3.6.0-cp37-cp37m-win_amd64.whl", hash = "sha256:59ec728b0f4a4605ec8f554946572d1d4f758199d9d0012920b8da3e6627dae6"},
-    {file = "reportlab-3.6.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:fda6c807a07895687954bf4cf9f05d6c68b7d60e74b1e029f0842d4ae21f7aeb"},
-    {file = "reportlab-3.6.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:8deff5442ce6e77d681288e74f5c5d10d086c77e41467d61d6d83f4171f2ad6e"},
-    {file = "reportlab-3.6.0-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:93a1610dcde02e5dbcdfcc612ca74068b840e883ca29a43634c23c742e870b21"},
-    {file = "reportlab-3.6.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:1a02bc1202f606f88e50cdcfa4153cefcf46ce2c5d350b0fc657047800f9fe49"},
-    {file = "reportlab-3.6.0-cp38-cp38-win32.whl", hash = "sha256:f1ab4cc0186ad4c5ab883a58faa249ee764f04aa79640fab7044895c15810b21"},
-    {file = "reportlab-3.6.0-cp38-cp38-win_amd64.whl", hash = "sha256:7e142f65d59f9242e0e28c57f0f2fc00d453cfb4034495c6382b8bc1ec33eec1"},
-    {file = "reportlab-3.6.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:a04477d668f2618f24862db64ef50beb6b8f9c423271b0eb2c0a3d401da1c679"},
-    {file = "reportlab-3.6.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:d663b1cf1b22e03e76f49017b464cc1a6b59077a1cf94e9a0b3e7079463b4868"},
-    {file = "reportlab-3.6.0-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:56183ddd015f3f8400d41dfbc77e58a091af0734d78f754a732613cf4f4035c3"},
-    {file = "reportlab-3.6.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:8e0d00a42b285abf90b2b268e984a8a91b5336f8be663346152d0cfcb9f21f07"},
-    {file = "reportlab-3.6.0-cp39-cp39-win32.whl", hash = "sha256:12d427a9bae58c046cd2a406f7ce340a6c3848b8f3f8a1eac20ceb36da69c10c"},
-    {file = "reportlab-3.6.0-cp39-cp39-win_amd64.whl", hash = "sha256:88995ccfdcbe0b70977161b9d51dfa160433e12e74e3ccc85644e632ebab0906"},
-    {file = "reportlab-3.6.0.tar.gz", hash = "sha256:189089e5f19acd0577967f1e7a0ec02e483b2ef27e6269a5abcbda0915ed6e85"},
-]
-
-[package.dependencies]
-pillow = ">=4.0.0"
-
-[package.extras]
-rlpycairo = ["rlPyCairo (>=0.0.5)"]
-
-[[package]]
 name = "setuptools"
 version = "69.2.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -1630,4 +1581,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8,<3.13"
-content-hash = "3ce0be8cd52ffa840fb2a793a411811f9df3d2347cb37ff553b2ed1e103235f1"
+content-hash = "fdaa9a8ad08f668fccc8ed3858371ea20113ae21a2004e13e99060852c45fced"

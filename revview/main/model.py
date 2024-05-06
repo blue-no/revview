@@ -230,7 +230,7 @@ class DifferenceDetection:
         )[0]
 
         for _ in range(n_repeat):
-            dmask = self._draw_contours(
+            dmask = _draw_contours(
                 src=src,
                 dst=np.zeros_like(src),
                 cnts=cnts,
@@ -258,48 +258,50 @@ class DifferenceDetection:
         src: np.ndarray,
         cnts: list[Any],
     ) -> np.ndarray:
-        dst = self._draw_contours(
+        dst = _draw_contours(
             src=src,
             cnts=cnts,
             dst=src.copy(),
             color=self.settings.line_color,
             width=self.settings.line_width,
+            extend_margin=-self._extend_mergin,
         )
         return dst
 
-    def _draw_contours(
-        self,
-        src: np.ndarray,
-        dst: np.ndarray,
-        cnts: list[Any],
-        color: tuple[int, int, int],
-        width: int = 1,
-        min_area: int = 0,
-        bg_rgb: tuple[int, int, int] | None = None,
-        bg_del_margin: int = 0,
-        extend_margin: int = 0,
-    ) -> np.ndarray:
-        for cnt in cnts:
-            if cv2.contourArea(cnt) < min_area:
+
+def _draw_contours(
+    src: np.ndarray,
+    dst: np.ndarray,
+    cnts: list[Any],
+    color: tuple[int, int, int],
+    width: int = 1,
+    min_area: int = 0,
+    bg_rgb: tuple[int, int, int] | None = None,
+    bg_del_margin: int = 0,
+    extend_margin: int = 0,
+) -> np.ndarray:
+    for cnt in cnts:
+        if cv2.contourArea(cnt) < min_area:
+            continue
+
+        x, y, w, h = cv2.boundingRect(cnt)
+
+        if bg_rgb is not None:
+            x1, x2 = x, x + w
+            y1, y2 = y, y + h
+            if w > 2 * bg_del_margin:
+                x1, x2 = x1 + bg_del_margin, x2 - bg_del_margin
+            if h > 2 * bg_del_margin:
+                y1, y2 = y1 + bg_del_margin, y2 - bg_del_margin
+            if np.all(src[y1:y2, x1:x2] == list(bg_rgb)):
                 continue
 
-            x, y, w, h = cv2.boundingRect(cnt)
-
-            if bg_rgb is not None:
-                x1, x2 = x, x + w
-                y1, y2 = y, y + h
-                if w > 2 * bg_del_margin:
-                    x1, x2 = x1 + bg_del_margin, x2 - bg_del_margin
-                if h > 2 * bg_del_margin:
-                    y1, y2 = y1 + bg_del_margin, y2 - bg_del_margin
-                if np.all(src[y1:y2, x1:x2] == list(bg_rgb)):
-                    continue
-
-            cv2.rectangle(
-                dst,
-                (x - extend_margin, y - extend_margin),
-                (x + w + extend_margin, y + h + extend_margin),
-                color,
-                width,
-            )
-        return dst
+        cv2.rectangle(
+            dst,
+            (x - extend_margin, y - extend_margin),
+            (x + w + extend_margin, y + h + extend_margin),
+            color,
+            thickness=width,
+            lineType=cv2.LINE_AA,
+        )
+    return dst

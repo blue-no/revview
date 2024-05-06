@@ -54,7 +54,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>ファイルをドロップ</string>
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -269,7 +269,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>ファイルをドロップ</string>
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>

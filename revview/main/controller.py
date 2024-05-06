@@ -117,6 +117,14 @@ class MainWindowController:
                 page_ref=self.page_l,
             )
         )
+
+        self._ftypes_str = " ".join(
+            ["*" + s for s in self.image_factory.supported_suffs()]
+        )
+        self.ui.slideLbl_L.setText(
+            "📁からファイルを選択 / ここにファイルをドロップ\n"
+            f"({self._ftypes_str})"
+        )
         self.ui.slideLbl_L.dragEnterEvent = (
             lambda event: self._drag_enter_event(
                 event=event,
@@ -137,6 +145,10 @@ class MainWindowController:
                 page_tgt=self.page_l,
                 page_ref=self.page_r,
             )
+        )
+        self.ui.slideLbl_R.setText(
+            "📁からファイルを選択 / ここにファイルをドロップ\n"
+            f"({self._ftypes_str})"
         )
         self.ui.slideLbl_R.dragEnterEvent = (
             lambda event: self._drag_enter_event(
@@ -337,12 +349,9 @@ class MainWindowController:
         page.go_page_no(p=int(page_le.text()))
 
     def _select_file(self) -> Path | None:
-        ftypes = " ".join(
-            ["*" + s for s in self.image_factory.supported_suffs()]
-        )
         dialog = QtWidgets.QFileDialog(
             caption="ファイルを開く",
-            filter=f"ファイル ({ftypes})",
+            filter=f"ファイル ({self._ftypes_str})",
             directory=self.settings.last_folder,
         )
         if dialog.exec_():

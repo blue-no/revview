@@ -32,7 +32,7 @@ def apply_button_style(
     if theme == "primary":
         args = [
             "QPushButton {",
-            "height: 26px;",
+            "height: 28px;",
             "width: 105px;",
             "border-radius: 4px;",
             "border-style: none;",
@@ -49,7 +49,7 @@ def apply_button_style(
     elif theme == "secondary":
         args = [
             "QPushButton {",
-            "height: 26px;",
+            "height: 28px;",
             "width: 105px;",
             "border-radius: 4px;",
             "border-style: none;",
@@ -104,8 +104,8 @@ def apply_lineedit_style(
     if theme == "primary":
         args = [
             "QLineEdit {",
-            "height: 22px;",
-            "font-size: 16px;",
+            "height: 24px;",
+            "font-size: 18px;",
             "border-radius: 4px;",
             "border-style: solid;",
             "border-width: 2px;",
@@ -117,8 +117,8 @@ def apply_lineedit_style(
     elif theme == "secondary":
         args = [
             "QLineEdit {",
-            "height: 22px;",
-            "font-size: 16px;",
+            "height: 28px;",
+            "font-size: 18px;",
             "border-radius: 4px;",
             "border-style: solid;",
             "border-width: 2px;",

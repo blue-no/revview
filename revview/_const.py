@@ -1,3 +1,4 @@
+# _const.py
 import os
 
 __cwd = os.getcwd()

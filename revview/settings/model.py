@@ -14,6 +14,7 @@ class Settings:
     bg_color: tuple[int] = (255, 255, 255)
     apply_legacy: bool = False
     last_folder: str = "."
+    enable_process_dpi_awareness: bool = True
 
     @classmethod
     def initialize(cls: Settings, fp: Path | str) -> Settings:

@@ -25,6 +25,12 @@ def change_brightness(code: tuple[int, int, int], ratio: float) -> None:
     return tuple(int(i * ratio) for i in code)
 
 
+def enable_process_dpi_awareness() -> None:
+    from ctypes import windll
+
+    windll.shcore.SetProcessDpiAwareness(True)
+
+
 def apply_button_style(
     button: QPushButton,
     theme: Literal["primary", "secondary"] = "primary",
